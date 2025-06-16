@@ -1,5 +1,3 @@
-function foo(): string {
-  return 'foo'
-}
+import { Freshfield } from "./classes/Freshfield";
 
-export default foo;
+export default Freshfield
