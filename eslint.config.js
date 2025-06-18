@@ -5,7 +5,7 @@ export default ts.config(
   ...ts.configs.recommended,
   {
     plugins: {
-      '@stylistic': stylistic
+      '@stylistic': stylistic,
     },
     rules: {
       '@stylistic/indent': ['error', 2],
@@ -14,9 +14,9 @@ export default ts.config(
       '@stylistic/comma-dangle': ['error', { objects: 'always-multiline' }],
       '@stylistic/object-curly-spacing': ['error', 'always'],
       '@stylistic/semi': ['error', 'never'],
-    }
+    },
   },
   {
-    ignores: ['build/', 'dist/']
+    ignores: ['build/', 'dist/'],
   }
 )
