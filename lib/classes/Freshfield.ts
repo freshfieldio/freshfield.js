@@ -5,11 +5,21 @@ import {Renderer} from "./Renderer";
 export class Freshfield {
   private token: string = ''
 
+  /**
+   * Initializes Freshfield SDK with the provided API key.
+   * @param {string} token - The API key
+   */
   init(token: string): void {
     this.token = token
   }
 
-  async fetchUpdates(options: FreshfieldOptions = {}): Promise<Update[]> {
+  /**
+   * Fetch updates and return them as JSON.
+   * @param {FreshfieldOptions} options
+   *
+   * @returns {Promise<Update[]>}
+   */
+  async json(options: FreshfieldOptions = {}): Promise<Update[]> {
     const { limit = 10, offset = 0, iconFormat = 'svg' } = options
     const url = new URL('https://pb.freshfield.io/api/widget/updates')
     url.searchParams.set('limit', limit.toString())
@@ -41,14 +51,20 @@ export class Freshfield {
     })))
   }
 
-  async renderUpdates(options: FreshfieldOptions = {}): Promise<HTMLElement> {
+  /**
+   * Fetch updates and render them to DOM
+   * @param {FreshfieldOptions} options
+   *
+   * @returns {Promise<HTMLElement>}
+   */
+  async html(options: FreshfieldOptions = {}): Promise<HTMLElement> {
     const container = document.getElementById('_ffUpdatesContainer');
     if (!container) {
       throw new Error('Container element with ID "_ffUpdatesContainer" not found');
     }
 
     try {
-      const updates = await this.fetchUpdates(options);
+      const updates = await this.json(options);
 
       if (!updates.length) {
         container.innerHTML = '<p class="_ffEmpty">No updates available</p>';
@@ -68,10 +84,17 @@ export class Freshfield {
     }
   }
 
+  /**
+   * Check and show latest update modal
+   *
+   * @param {ModalOptions} options
+   *
+   * @returns {Promise<void>}
+   */
   async showLastUpdateModal(options: ModalOptions): Promise<void> {
     const { beforeShow, onConfirm, ageLimit = 14, submitButtonText = 'Got it!' } = options;
     try {
-      const [latestUpdate] = await this.fetchUpdates({ limit: 1 });
+      const [latestUpdate] = await this.json({ limit: 1 });
       if (!latestUpdate) return;
 
       const shouldShow = await beforeShow(latestUpdate.id);

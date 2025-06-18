@@ -1,3 +1,5 @@
+import { Feature, Update } from "../types";
+
 export class Renderer {
   static createFeatureElement(feature: Feature): HTMLElement {
     const featureEl = document.createElement('div');
@@ -54,7 +56,7 @@ export class Renderer {
     const features = document.createElement('div');
     features.className = '_ffFeaturesList';
 
-    update.features.forEach((feature) => {
+    update.features.forEach((feature: Feature) => {
       features.appendChild(this.createFeatureElement(feature));
     });
 
