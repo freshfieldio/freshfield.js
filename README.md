@@ -156,6 +156,7 @@ This code example also includes a basic localstorage function that displays the 
 ```javascript
 freshfield.showLastUpdateModal({
   ageLimit: 14,
+  theme: "default" // 'default' or 'modern'
   submitButtonText: "Got it!",
   beforeShow: async (id) => {
     const lastSeenId = localStorage.getItem("_ffLastSeenUpdate");

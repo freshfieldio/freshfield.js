@@ -18,4 +18,5 @@ export interface ModalOptions {
   beforeShow: (id: string) => Promise<boolean>;
   onConfirm: (id: string) => void;
   submitButtonText?: string;
+  theme?: 'default' | 'modern';
 }

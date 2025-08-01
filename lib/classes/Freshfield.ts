@@ -113,6 +113,7 @@ export class Freshfield {
    * @param options.onConfirm Callback triggered when user confirms the modal (receives update ID)
    * @param options.ageLimit Maximum age in days for update to be shown (default: 14)
    * @param options.submitButtonText Custom text for the submit button (default: 'Got it!')
+   * @param options.theme Style variant for the modal - 'default' or 'modern' (default: 'default')
    * @throws {Error} If there's an error fetching the latest update
    */
   async showLastUpdateModal(options: ModalOptions): Promise<void> {
@@ -121,6 +122,7 @@ export class Freshfield {
       onConfirm,
       ageLimit = DEFAULT_OPTIONS.AGE_LIMIT,
       submitButtonText = DEFAULT_OPTIONS.SUBMIT_BUTTON_TEXT,
+      theme = 'default',
     } = options
     try {
       const [latestUpdate] = await this.json({ limit: 1 })
@@ -133,22 +135,35 @@ export class Freshfield {
       const daysSinceUpdate = (Date.now() - updateDate.getTime()) / (1000 * 60 * 60 * 24)
 
       if (daysSinceUpdate <= ageLimit) {
-        this.showModal(latestUpdate, onConfirm, submitButtonText)
+        this.showModal(latestUpdate, onConfirm, submitButtonText, theme)
       }
     } catch (error) {
       console.error('Failed to check latest update:', error)
     }
   }
 
-  private showModal(update: Update, onConfirm?: (id: string) => void, submitButtonText: string = DEFAULT_OPTIONS.SUBMIT_BUTTON_TEXT): void {
+  private showModal(update: Update, onConfirm?: (id: string) => void, submitButtonText: string = DEFAULT_OPTIONS.SUBMIT_BUTTON_TEXT, theme: 'default' | 'modern' = 'default'): void {
+    Utils.loadStyles()
+
     document.querySelectorAll(`.${SELECTORS.MODAL}`).forEach((modal) => modal.remove())
 
     const modal = document.createElement('div')
     modal.className = SELECTORS.MODAL
 
     const content = document.createElement('div')
-    content.className = '_ffModalContent'
+    content.className = theme === 'modern' ? '_ffModalContent modern' : '_ffModalContent'
 
+    if (theme === 'modern') {
+      this.createModernModal(content, update, submitButtonText, modal, onConfirm)
+    } else {
+      this.createDefaultModal(content, update, submitButtonText, modal, onConfirm)
+    }
+
+    modal.appendChild(content)
+    document.body.appendChild(modal)
+  }
+
+  private createDefaultModal(content: HTMLElement, update: Update, submitButtonText: string, modal: HTMLElement, onConfirm?: (id: string) => void): void {
     const title = document.createElement('h3')
     title.className = '_ffUpdateTitle'
     title.textContent = update.title
@@ -172,8 +187,11 @@ export class Freshfield {
     closeButton.className = '_ffModalClose'
     closeButton.textContent = submitButtonText
     closeButton.addEventListener('click', () => {
-      modal.remove()
-      if (onConfirm) onConfirm(update.id)
+      modal.classList.add('_ffClosing')
+      setTimeout(() => {
+        modal.remove()
+        if (onConfirm) onConfirm(update.id)
+      }, 200)
     })
 
     content.appendChild(title)
@@ -181,8 +199,87 @@ export class Freshfield {
     content.appendChild(description)
     content.appendChild(features)
     content.appendChild(closeButton)
-    modal.appendChild(content)
+  }
 
-    document.body.appendChild(modal)
+  private createModernModal(content: HTMLElement, update: Update, submitButtonText: string, modal: HTMLElement, onConfirm?: (id: string) => void): void {
+    // Header with version and date
+    const header = document.createElement('div')
+    header.className = '_ffUpdateHeader'
+
+    const version = document.createElement('p')
+    version.className = '_ffUpdateVersion'
+    version.textContent = 'v1.0.0' // You might want to add version to Update interface
+
+    const date = document.createElement('p')
+    date.className = '_ffUpdateDate'
+    date.textContent = new Date(update.created).toLocaleDateString('cs-CZ')
+
+    header.appendChild(version)
+    header.appendChild(date)
+
+    // Title
+    const title = document.createElement('h3')
+    title.className = '_ffUpdateTitle'
+    title.textContent = update.title
+
+    // Features
+    const features = document.createElement('div')
+    features.className = '_ffFeaturesList'
+
+    update.features.forEach((feature) => {
+      // Main feature container - space-y-0.5 rounded-xl bg-light-soft px-3 py-2.5
+      const featureEl = document.createElement('div')
+      featureEl.className = '_ffFeature'
+
+      // Header row - flex items-center gap-2
+      const featureHeader = document.createElement('div')
+      featureHeader.className = '_ffFeatureHeader'
+
+      // Icon - rounded text-xl
+      if (feature.icon) {
+        const icon = document.createElement('span')
+        icon.className = '_ffFeatureIcon'
+        icon.innerHTML = feature.icon
+        featureHeader.appendChild(icon)
+      }
+
+      // Title - font-semibold text-dark
+      const featureTitle = document.createElement('h3')
+      featureTitle.className = '_ffFeatureTitle'
+      featureTitle.textContent = feature.name
+
+      // Label - rounded px-2 py-0.5 text-sm font-semibold uppercase text-green
+      const featureLabel = document.createElement('span')
+      featureLabel.className = '_ffFeatureLabel'
+      featureLabel.textContent = feature.type
+
+      featureHeader.appendChild(featureTitle)
+      featureHeader.appendChild(featureLabel)
+
+      // Description - ml-7 text-sm text-middle
+      const featureText = document.createElement('p')
+      featureText.className = '_ffFeatureText'
+      featureText.textContent = feature.description
+
+      featureEl.appendChild(featureHeader)
+      featureEl.appendChild(featureText)
+      features.appendChild(featureEl)
+    })
+
+    const closeButton = document.createElement('button')
+    closeButton.className = '_ffModalClose'
+    closeButton.textContent = submitButtonText
+    closeButton.addEventListener('click', () => {
+      modal.classList.add('_ffClosing')
+      setTimeout(() => {
+        modal.remove()
+        if (onConfirm) onConfirm(update.id)
+      }, 200)
+    })
+
+    content.appendChild(header)
+    content.appendChild(title)
+    content.appendChild(features)
+    content.appendChild(closeButton)
   }
 }
