@@ -1,16 +1,51 @@
 {
   "name": "freshfield.js",
   "version": "0.1.1",
-  "author": "Freshfield",
+  "description": "Freshfield SDK for displaying updates widgets in your app.",
+  "author": "Freshfield.io",
   "license": "MIT",
   "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "scripts": {
-    "build": "rimraf dist && rollup -c"
+    "build": "rimraf dist && rollup -c",
+    "dev": "rollup -c -w",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint . --ext .ts,.js",
+    "lint:fix": "eslint . --ext .ts,.js --fix",
+    "prepublishOnly": "npm run build",
+    "test": "echo \"No tests specified\" && exit 0"
   },
   "repository": {
     "type": "git",
-    "url": "git:github.com/freshfieldio/freshfield.js.git"
+    "url": "https://github.com/freshfieldio/freshfield.js.git"
   },
+  "bugs": {
+    "url": "https://github.com/freshfieldio/freshfield.js/issues"
+  },
+  "homepage": "https://github.com/freshfieldio/freshfield.js#readme",
+  "keywords": [
+    "freshfield",
+    "sdk",
+    "releasenotes",
+    "changelog",
+    "widgets",
+    "integration"
+  ],
   "devDependencies": {
     "@eslint/js": "^9.29.0",
     "@rollup/plugin-commonjs": "^28.0.5",
@@ -24,7 +59,5 @@
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.34.1"
   },
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "packageManager": "pnpm@10.12.1+sha512.f0dda8580f0ee9481c5c79a1d927b9164f2c478e90992ad268bbb2465a736984391d6333d2c327913578b2804af33474ca554ba29c04a8b13060a717675ae3ac"
 }
