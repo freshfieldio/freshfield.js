@@ -29,33 +29,43 @@ const styles = `
         width: 1.5em;
         height: 1.5em;
     }
-`;
+`
+
+import { API_ENDPOINTS, SELECTORS } from '../constants'
 
 export class Utils {
   static async getIconSvg(icon: string): Promise<string> {
-    const [prefix, name] = icon.split(':');
+    const [prefix, name] = icon.split(':')
 
-    if (!prefix || !name) return '';
+    if (!prefix || !name) {
+      console.warn(`Invalid icon format: ${icon}. Expected format: "prefix:name"`)
+      return ''
+    }
 
     try {
-      const response = await fetch(`https://api.iconify.design/${prefix}.json?icons=${name}`);
-      const data = await response.json();
-      if (data.icons && data.icons[name]) {
-        return `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 ${data.width} ${data.height}" fill="currentColor">${data.icons[name].body}</svg>`;
+      const response = await fetch(`${API_ENDPOINTS.ICONIFY}/${prefix}.json?icons=${name}`)
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
-      throw new Error(`Icon ${icon} not found`);
+
+      const data = await response.json()
+      if (data.icons && data.icons[name]) {
+        return `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 ${data.width} ${data.height}" fill="currentColor">${data.icons[name].body}</svg>`
+      }
+      throw new Error(`Icon ${icon} not found in response`)
     } catch (error) {
-      console.error('Failed to fetch icon:', error);
-      return '';
+      console.error(`Failed to fetch icon ${icon}:`, error)
+      return ''
     }
   }
 
   static loadStyles(): void {
-    if (!document.getElementById('_ffStyles')) {
-      const style = document.createElement('style');
-      style.id = '_ffStyles';
-      style.textContent = styles;
-      document.head.appendChild(style);
+    if (!document.getElementById(SELECTORS.STYLES)) {
+      const style = document.createElement('style')
+      style.id = SELECTORS.STYLES
+      style.textContent = styles
+      document.head.appendChild(style)
     }
   }
 }

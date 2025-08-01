@@ -1,27 +1,30 @@
-import { FreshfieldOptions, Update, ModalOptions } from "../types";
-import {Utils} from "./Utils";
-import {Renderer} from "./Renderer";
+import { FreshfieldOptions, Update, ModalOptions } from '../types'
+import { Utils } from './Utils'
+import { Renderer } from './Renderer'
+import { API_ENDPOINTS, DEFAULT_OPTIONS, SELECTORS } from '../constants'
 
 export class Freshfield {
   private token: string = ''
 
-  /**
-   * Initializes Freshfield SDK with the provided API key.
-   * @param {string} token - The API key
-   */
   init(token: string): void {
-    this.token = token
+    if (!token || token.trim().length === 0) {
+      throw new Error('API token is required')
+    }
+    this.token = token.trim()
   }
 
-  /**
-   * Fetch updates and return them as JSON.
-   * @param {FreshfieldOptions} options
-   *
-   * @returns {Promise<Update[]>}
-   */
   async json(options: FreshfieldOptions = {}): Promise<Update[]> {
-    const { limit = 10, offset = 0, iconFormat = 'svg' } = options
-    const url = new URL('https://pb.freshfield.io/api/widget/updates')
+    if (!this.token) {
+      throw new Error('SDK not initialized. Call init() first.')
+    }
+
+    const {
+      limit = DEFAULT_OPTIONS.LIMIT,
+      offset = DEFAULT_OPTIONS.OFFSET,
+      iconFormat = DEFAULT_OPTIONS.ICON_FORMAT,
+    } = options
+
+    const url = new URL(`${API_ENDPOINTS.BASE_URL}/api/widget/updates`)
     url.searchParams.set('limit', limit.toString())
     url.searchParams.set('offset', offset.toString())
     url.searchParams.set('iconFormat', iconFormat)
@@ -29,11 +32,12 @@ export class Freshfield {
     const res = await fetch(url, {
       headers: {
         'X-Widget-Key': this.token,
-      }
+      },
     })
 
     if (!res.ok) {
-      throw new Error('Failed to fetch updates')
+      const errorMsg = `Failed to fetch updates (${res.status}): ${res.statusText}`
+      throw new Error(errorMsg)
     }
 
     const updates: Update[] = await res.json()
@@ -41,119 +45,111 @@ export class Freshfield {
     return Promise.all(updates.map(async update => ({
       ...update,
       features: await Promise.all(update.features.map(async feature => {
-        if (!feature.icon) return feature;
+        if (!feature.icon) return feature
 
         return iconFormat === 'svg' ? {
           ...feature,
-          icon: await Utils.getIconSvg(feature.icon)
+          icon: await Utils.getIconSvg(feature.icon),
         } : feature
-      }))
+      })),
     })))
   }
 
-  /**
-   * Fetch updates and render them to DOM
-   * @param {FreshfieldOptions} options
-   *
-   * @returns {Promise<HTMLElement>}
-   */
   async html(options: FreshfieldOptions = {}): Promise<HTMLElement> {
-    const container = document.getElementById('_ffUpdatesContainer');
+    const container = document.getElementById(SELECTORS.CONTAINER)
     if (!container) {
-      throw new Error('Container element with ID "_ffUpdatesContainer" not found');
+      throw new Error(`Container element with ID "${SELECTORS.CONTAINER}" not found`)
     }
 
     try {
-      const updates = await this.json(options);
+      const updates = await this.json(options)
 
       if (!updates.length) {
-        container.innerHTML = '<p class="_ffEmpty">No updates available</p>';
-        return container;
+        container.innerHTML = '<p class="_ffEmpty">No updates available</p>'
+        return container
       }
 
-      const list = document.createElement('div');
-      list.className = '_ffUpdatesList';
-      updates.forEach((update) => list.appendChild(Renderer.createUpdateElement(update)));
+      const list = document.createElement('div')
+      list.className = '_ffUpdatesList'
+      updates.forEach((update) => list.appendChild(Renderer.createUpdateElement(update)))
 
-      container.innerHTML = '';
-      container.appendChild(list);
-      return container;
+      container.innerHTML = ''
+      container.appendChild(list)
+      return container
     } catch (error) {
-      console.error('Failed to load updates:', error);
-      throw error;
+      console.error('Failed to load updates:', error)
+      throw error
     }
   }
 
-  /**
-   * Check and show latest update modal
-   *
-   * @param {ModalOptions} options
-   *
-   * @returns {Promise<void>}
-   */
   async showLastUpdateModal(options: ModalOptions): Promise<void> {
-    const { beforeShow, onConfirm, ageLimit = 14, submitButtonText = 'Got it!' } = options;
+    const {
+      beforeShow,
+      onConfirm,
+      ageLimit = DEFAULT_OPTIONS.AGE_LIMIT,
+      submitButtonText = DEFAULT_OPTIONS.SUBMIT_BUTTON_TEXT,
+    } = options
     try {
-      const [latestUpdate] = await this.json({ limit: 1 });
-      if (!latestUpdate) return;
+      const [latestUpdate] = await this.json({ limit: 1 })
+      if (!latestUpdate) return
 
-      const shouldShow = await beforeShow(latestUpdate.id);
-      if (!shouldShow) return;
+      const shouldShow = await beforeShow(latestUpdate.id)
+      if (!shouldShow) return
 
-      const updateDate = new Date(latestUpdate.created);
-      const daysSinceUpdate = (Date.now() - updateDate.getTime()) / (1000 * 60 * 60 * 24);
+      const updateDate = new Date(latestUpdate.created)
+      const daysSinceUpdate = (Date.now() - updateDate.getTime()) / (1000 * 60 * 60 * 24)
 
       if (daysSinceUpdate <= ageLimit) {
-        this.showModal(latestUpdate, onConfirm, submitButtonText);
+        this.showModal(latestUpdate, onConfirm, submitButtonText)
       }
     } catch (error) {
-      console.error('Failed to check latest update:', error);
+      console.error('Failed to check latest update:', error)
     }
   }
 
-  private showModal(update: Update, onConfirm?: (id: string) => void, submitButtonText = 'Got it!'): void {
-    document.querySelectorAll('._ffModal').forEach((modal) => modal.remove());
+  private showModal(update: Update, onConfirm?: (id: string) => void, submitButtonText: string = DEFAULT_OPTIONS.SUBMIT_BUTTON_TEXT): void {
+    document.querySelectorAll(`.${SELECTORS.MODAL}`).forEach((modal) => modal.remove())
 
-    const modal = document.createElement('div');
-    modal.className = '_ffModal';
+    const modal = document.createElement('div')
+    modal.className = SELECTORS.MODAL
 
-    const content = document.createElement('div');
-    content.className = '_ffModalContent';
+    const content = document.createElement('div')
+    content.className = '_ffModalContent'
 
-    const title = document.createElement('h3');
-    title.className = '_ffUpdateTitle';
-    title.textContent = update.title;
+    const title = document.createElement('h3')
+    title.className = '_ffUpdateTitle'
+    title.textContent = update.title
 
-    const date = document.createElement('time');
-    date.className = '_ffUpdateDate';
-    date.textContent = new Date(update.created).toLocaleDateString();
+    const date = document.createElement('time')
+    date.className = '_ffUpdateDate'
+    date.textContent = new Date(update.created).toLocaleDateString()
 
-    const description = document.createElement('div');
-    description.className = '_ffUpdateDescription';
-    description.innerHTML = update.description;
+    const description = document.createElement('div')
+    description.className = '_ffUpdateDescription'
+    description.innerHTML = update.description
 
-    const features = document.createElement('div');
-    features.className = '_ffFeaturesList';
+    const features = document.createElement('div')
+    features.className = '_ffFeaturesList'
 
     update.features.forEach((feature) => {
-      features.appendChild(Renderer.createFeatureElement(feature));
-    });
+      features.appendChild(Renderer.createFeatureElement(feature))
+    })
 
-    const closeButton = document.createElement('button');
-    closeButton.className = '_ffModalClose';
-    closeButton.textContent = submitButtonText;
+    const closeButton = document.createElement('button')
+    closeButton.className = '_ffModalClose'
+    closeButton.textContent = submitButtonText
     closeButton.addEventListener('click', () => {
-      modal.remove();
-      if (onConfirm) onConfirm(update.id);
-    });
+      modal.remove()
+      if (onConfirm) onConfirm(update.id)
+    })
 
-    content.appendChild(title);
-    content.appendChild(date);
-    content.appendChild(description);
-    content.appendChild(features);
-    content.appendChild(closeButton);
-    modal.appendChild(content);
+    content.appendChild(title)
+    content.appendChild(date)
+    content.appendChild(description)
+    content.appendChild(features)
+    content.appendChild(closeButton)
+    modal.appendChild(content)
 
-    document.body.appendChild(modal);
+    document.body.appendChild(modal)
   }
 }
