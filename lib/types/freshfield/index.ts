@@ -3,3 +3,8 @@ export interface FreshfieldOptions {
   offset?: number
   iconFormat?: 'text' | 'svg'
 }
+
+export interface FreshfieldHtmlOptions {
+  limit?: number
+  offset?: number
+}

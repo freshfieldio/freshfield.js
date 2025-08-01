@@ -33,6 +33,7 @@ const styles = `
 
 import { API_ENDPOINTS, SELECTORS } from '../constants'
 
+
 export class Utils {
   static async getIconSvg(icon: string): Promise<string> {
     const [prefix, name] = icon.split(':')
@@ -59,6 +60,7 @@ export class Utils {
       return ''
     }
   }
+
 
   static loadStyles(): void {
     if (!document.getElementById(SELECTORS.STYLES)) {

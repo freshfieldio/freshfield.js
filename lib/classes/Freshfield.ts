@@ -1,11 +1,17 @@
-import { FreshfieldOptions, Update, ModalOptions } from '../types'
+import { FreshfieldOptions, FreshfieldHtmlOptions, Update, ModalOptions } from '../types'
 import { Utils } from './Utils'
 import { Renderer } from './Renderer'
 import { API_ENDPOINTS, DEFAULT_OPTIONS, SELECTORS } from '../constants'
 
+
 export class Freshfield {
   private token: string = ''
 
+  /**
+   * Initialize the Freshfield SDK with your API token.
+   * @param token Your Freshfield API token
+   * @throws {Error} If token is empty or invalid
+   */
   init(token: string): void {
     if (!token || token.trim().length === 0) {
       throw new Error('API token is required')
@@ -13,6 +19,15 @@ export class Freshfield {
     this.token = token.trim()
   }
 
+  /**
+   * Fetch updates from Freshfield API as JSON data.
+   * @param options Configuration options for fetching updates
+   * @param options.limit Maximum number of updates to fetch (default: 10)
+   * @param options.offset Number of updates to skip (default: 0)
+   * @param options.iconFormat Format for feature icons - 'text' or 'svg' (default: 'svg')
+   * @returns Promise resolving to array of updates
+   * @throws {Error} If SDK not initialized or API request fails
+   */
   async json(options: FreshfieldOptions = {}): Promise<Update[]> {
     if (!this.token) {
       throw new Error('SDK not initialized. Call init() first.')
@@ -55,14 +70,23 @@ export class Freshfield {
     })))
   }
 
-  async html(options: FreshfieldOptions = {}): Promise<HTMLElement> {
+  /**
+   * Render updates as HTML elements and inject them into the DOM.
+   * Requires a container element with ID '_ffUpdatesContainer' in your DOM.
+   * @param options Configuration options for fetching and rendering updates
+   * @param options.limit Maximum number of updates to fetch (default: 10)
+   * @param options.offset Number of updates to skip (default: 0)
+   * @returns Promise resolving to the container HTML element
+   * @throws {Error} If container element not found or API request fails
+   */
+  async html(options: FreshfieldHtmlOptions = {}): Promise<HTMLElement> {
     const container = document.getElementById(SELECTORS.CONTAINER)
     if (!container) {
       throw new Error(`Container element with ID "${SELECTORS.CONTAINER}" not found`)
     }
 
     try {
-      const updates = await this.json(options)
+      const updates = await this.json({ ...options, iconFormat: 'svg' })
 
       if (!updates.length) {
         container.innerHTML = '<p class="_ffEmpty">No updates available</p>'
@@ -82,6 +106,15 @@ export class Freshfield {
     }
   }
 
+  /**
+   * Show the latest update in a modal dialog if conditions are met.
+   * @param options Configuration options for the modal
+   * @param options.beforeShow Callback to determine if modal should be shown (receives update ID)
+   * @param options.onConfirm Callback triggered when user confirms the modal (receives update ID)
+   * @param options.ageLimit Maximum age in days for update to be shown (default: 14)
+   * @param options.submitButtonText Custom text for the submit button (default: 'Got it!')
+   * @throws {Error} If there's an error fetching the latest update
+   */
   async showLastUpdateModal(options: ModalOptions): Promise<void> {
     const {
       beforeShow,
