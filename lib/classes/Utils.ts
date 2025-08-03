@@ -60,6 +60,12 @@ const styles = `
         height: 1.5em;
     }
 
+    ._ffFeatureIconFallback {
+        color: #666;
+        font-weight: bold;
+        font-size: 1.2em;
+    }
+
     ._ffUpdateTitle {
         margin: 0 0 1rem 0;
         font-size: 1.25rem;
@@ -215,6 +221,12 @@ const styles = `
         height: 100%;
     }
 
+    .modern ._ffFeatureIconFallback {
+        color: var(--color-middle);
+        font-weight: bold;
+        font-size: 1em;
+    }
+
     .modern ._ffFeatureTitle {
         font-weight: 600;
         color: var(--color-dark);
@@ -276,9 +288,27 @@ export class Utils {
       }
 
       const data = await response.json()
+      
+      let iconData = null
+      let actualIconName = name
+      
       if (data.icons && data.icons[name]) {
-        return `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 ${data.width} ${data.height}" fill="currentColor">${data.icons[name].body}</svg>`
+        iconData = data.icons[name]
       }
+      else if (data.aliases && data.aliases[name]) {
+        actualIconName = data.aliases[name].parent
+        if (data.icons && data.icons[actualIconName]) {
+          iconData = data.icons[actualIconName]
+        }
+      }
+      
+      if (iconData) {
+        const width = iconData.width || data.width || 24
+        const height = iconData.height || data.height || 24
+        
+        return `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 ${width} ${height}" fill="currentColor">${iconData.body}</svg>`
+      }
+      
       throw new Error(`Icon ${icon} not found in response`)
     } catch (error) {
       console.error(`Failed to fetch icon ${icon}:`, error)

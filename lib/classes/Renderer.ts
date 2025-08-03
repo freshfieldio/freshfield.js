@@ -5,10 +5,16 @@ export class Renderer {
     const featureEl = document.createElement('div')
     featureEl.className = `_ffFeature _ffFeature-${feature.type}`
 
-    if (feature.icon) {
+    if (feature.icon && feature.icon.trim()) {
       const icon = document.createElement('span')
       icon.className = '_ffFeatureIcon'
       icon.innerHTML = feature.icon
+      featureEl.appendChild(icon)
+    } else {
+      // Add a simple text-based fallback icon
+      const icon = document.createElement('span')
+      icon.className = '_ffFeatureIcon _ffFeatureIconFallback'
+      icon.textContent = '•'
       featureEl.appendChild(icon)
     }
 

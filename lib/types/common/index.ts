@@ -3,6 +3,7 @@ export interface Update {
   created: string
   title: string
   description: string
+  version: string
   features: Feature[]
 }
 

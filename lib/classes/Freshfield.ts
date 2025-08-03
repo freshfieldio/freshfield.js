@@ -62,10 +62,24 @@ export class Freshfield {
       features: await Promise.all(update.features.map(async feature => {
         if (!feature.icon) return feature
 
-        return iconFormat === 'svg' ? {
-          ...feature,
-          icon: await Utils.getIconSvg(feature.icon),
-        } : feature
+        if (iconFormat === 'svg') {
+          try {
+            const iconSvg = await Utils.getIconSvg(feature.icon)
+            return {
+              ...feature,
+              icon: iconSvg,
+            }
+          } catch (error) {
+            console.warn(`Failed to load icon ${feature.icon}, using text fallback:`, error)
+            // Return feature without icon to gracefully degrade
+            return {
+              ...feature,
+              icon: undefined,
+            }
+          }
+        }
+        
+        return feature
       })),
     })))
   }
@@ -208,7 +222,7 @@ export class Freshfield {
 
     const version = document.createElement('p')
     version.className = '_ffUpdateVersion'
-    version.textContent = 'v1.0.0' // You might want to add version to Update interface
+    version.textContent = update.version
 
     const date = document.createElement('p')
     date.className = '_ffUpdateDate'
@@ -236,10 +250,16 @@ export class Freshfield {
       featureHeader.className = '_ffFeatureHeader'
 
       // Icon - rounded text-xl
-      if (feature.icon) {
+      if (feature.icon && feature.icon.trim()) {
         const icon = document.createElement('span')
         icon.className = '_ffFeatureIcon'
         icon.innerHTML = feature.icon
+        featureHeader.appendChild(icon)
+      } else {
+        // Add a simple text-based fallback icon
+        const icon = document.createElement('span')
+        icon.className = '_ffFeatureIcon _ffFeatureIconFallback'
+        icon.textContent = '•'
         featureHeader.appendChild(icon)
       }
 
