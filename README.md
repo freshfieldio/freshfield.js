@@ -359,15 +359,19 @@ freshfield.showLastUpdateModal({
 
 ## CSS Customization
 
-All Freshfield widgets use CSS classes with the `_ff` prefix for easy customization:
+All Freshfield widgets use CSS classes with the `_ff` prefix for easy customization.
+
+**Notes:**
+
+- For theme-specific overrides, use `._ffModalContent.modern ._ffElement` pattern
 
 <details>
 <summary><strong>HTML Updates Classes</strong></summary>
 
-- `._ffUpdatesContainer` - Main container element
 - `._ffUpdatesList` - Updates list wrapper
 - `._ffUpdate` - Individual update container
 - `._ffUpdateHeader` - Update header section
+- `._ffUpdateVersion` - Version badge
 - `._ffUpdateTitle` - Update title
 - `._ffUpdateDate` - Update date
 - `._ffUpdateDescription` - Update description
@@ -377,15 +381,28 @@ All Freshfield widgets use CSS classes with the `_ff` prefix for easy customizat
 <details>
 <summary><strong>Features Classes</strong></summary>
 
+**Common:**
+
 - `._ffFeaturesList` - Features list container
-- `._ffFeature` - Individual feature
-- `._ffFeature-new` - New feature styling
-- `._ffFeature-fix` - Bug fix styling
-- `._ffFeature-improvement` - Improvement styling
-- `._ffFeatureIcon` - Feature icon
-- `._ffFeatureContent` - Feature content container
-- `._ffFeatureName` - Feature name
+- `._ffFeature` - Individual feature container
+- `._ffFeature-new` - New feature type styling
+- `._ffFeature-fix` - Bug fix type styling
+- `._ffFeature-improvement` - Improvement type styling
+- `._ffFeatureIcon` - Feature icon container
+- `._ffFeatureIconFallback` - Fallback icon styling
+
+**HTML Updates List:**
+
+- `._ffFeatureContent` - Feature content wrapper
+- `._ffFeatureName` - Feature name (h4)
 - `._ffFeatureDescription` - Feature description
+
+**Modal Display:**
+
+- `._ffFeatureHeader` - Feature header section
+- `._ffFeatureTitle` - Feature title (h3)
+- `._ffFeatureLabel` - Feature type label
+- `._ffFeatureText` - Feature description text
 
 </details>
 
@@ -419,11 +436,10 @@ All Freshfield widgets use CSS classes with the `_ff` prefix for easy customizat
 - `._ffUpdateTitle` - Update title
 - `._ffUpdateDate` - Update date
 - `._ffUpdateDescription` - Update description
-- `._ffFeaturesList` - Features list container
-- `._ffFeature` - Individual feature item
-- `._ffFeatureIcon` - Feature icon container
-- `._ffFeatureIconFallback` - Fallback icon styling
-- `._ffFeatureText` - Feature description text
+
+**Feature Elements:**
+
+_See "Features Classes" section above for complete modal feature styling classes_
 
 **Animation Classes:**
 
@@ -432,10 +448,22 @@ All Freshfield widgets use CSS classes with the `_ff` prefix for easy customizat
 </details>
 
 <details>
-<summary><strong>Utility Classes</strong></summary>
+<summary><strong>Container & Utility Classes</strong></summary>
+
+**Required Container IDs:**
+
+- `._ffUpdatesContainer` - Required container element for HTML updates
+- `._ffSubscriptionContainer` - Required container element for subscription widget
+
+**Utility Classes:**
 
 - `._ffEmpty` - Empty state message
 - `._ffStyles` - Internal styles container
+
+**CSS Animations:**
+
+- `@keyframes _ffFlyIn` - Modal entrance animation
+- `@keyframes _ffFlyOut` - Modal exit animation
 
 </details>
 
