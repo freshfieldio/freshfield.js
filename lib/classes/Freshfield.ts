@@ -1,4 +1,4 @@
-import { FreshfieldOptions, FreshfieldHtmlOptions, Update, ModalOptions, SubscriptionOptions } from '../types'
+import { FreshfieldOptions, FreshfieldHtmlOptions, Update, ModalOptions, SubscriptionWidgetOptions, SubscriptionStatusResponse, SubscriptionUpdateResponse, SubscriptionAddResponse } from '../types'
 import { Utils } from './Utils'
 import { Renderer } from './Renderer'
 import { API_ENDPOINTS, DEFAULT_OPTIONS, SELECTORS } from '../constants'
@@ -6,6 +6,13 @@ import { API_ENDPOINTS, DEFAULT_OPTIONS, SELECTORS } from '../constants'
 
 export class Freshfield {
   private token: string = ''
+  
+  public subscription = {
+    widget: this.subscriptionWidget.bind(this),
+    add: this.addSubscription.bind(this),
+    getStatus: this.getSubscriptionStatus.bind(this),
+    updateStatus: this.updateSubscriptionStatus.bind(this),
+  }
 
   /**
    * Initialize the Freshfield SDK with your API token.
@@ -326,7 +333,7 @@ export class Freshfield {
    * @returns The container HTML element
    * @throws {Error} If container element not found or API token not initialized
    */
-  subscription(options: SubscriptionOptions = {}): HTMLElement {
+  private subscriptionWidget(options: SubscriptionWidgetOptions = {}): HTMLElement {
     if (!this.token) {
       throw new Error('SDK not initialized. Call init() first.')
     }
@@ -434,8 +441,6 @@ export class Freshfield {
       submitButton.disabled = true
       submitButton.textContent = loadingText
 
-      const url = new URL(`${API_ENDPOINTS.BASE_URL}/api/widget/subscribe`)
-
       try {
         // Run beforeSend validation if provided
         if (beforeSend) {
@@ -446,61 +451,11 @@ export class Freshfield {
           }
         }
 
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Widget-Key': this.token,
-          },
-          body: JSON.stringify({ email }),
-        })
-
-        await new Promise(resolve => setTimeout(resolve, 800))
-
-        if (!response.ok) {
-          let errorMessage = 'Subscription failed. Please try again.'
-          
-          // Priority 1: Check for custom messages first
-          if (response.status === 400 && messages[400]) {
-            errorMessage = messages[400]
-          } else if (response.status === 409 && messages[409]) {
-            errorMessage = messages[409]
-          } else if (response.status === 429 && messages[429]) {
-            errorMessage = messages[429]
-          } else if (response.status >= 500 && messages[500]) {
-            errorMessage = messages[500]
-          } else if (messages.default) {
-            errorMessage = messages.default
-          } else {
-            // Priority 2: Try to get server response message
-            try {
-              const errorData = await response.json()
-              
-              if (errorData.message) {
-                errorMessage = errorData.message
-              } else if (errorData.error) {
-                errorMessage = errorData.error
-              } else if (errorData.details) {
-                errorMessage = errorData.details
-              } else if (typeof errorData === 'string') {
-                errorMessage = errorData
-              }
-            } catch (parseError) {
-              // Priority 3: Use default fallbacks
-              if (response.status === 400) {
-                errorMessage = 'Invalid email address'
-              } else if (response.status === 409) {
-                errorMessage = 'This email is already subscribed'
-              } else if (response.status === 429) {
-                errorMessage = 'Too many requests. Please try again later.'
-              } else if (response.status >= 500) {
-                errorMessage = 'Server error. Please try again later.'
-              }
-            }
-          }
-          
-          throw new Error(errorMessage)
-        }
+        // Add delay for better UX in widget
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        
+        // Use the core subscription method
+        await this.addSubscription(email)
 
         // Success
         emailInput.value = ''
@@ -521,7 +476,43 @@ export class Freshfield {
       } catch (error) {
         console.error('Subscription error:', error)
         
-        const errorMessage = error instanceof Error ? error.message : 'Subscription failed. Please try again.'
+        let errorMessage = 'Subscription failed. Please try again.'
+        
+        if (error instanceof Error) {
+          // Extract status code from error message
+          let status: number | undefined
+          if (error.message.includes('(400)')) status = 400
+          else if (error.message.includes('(409)')) status = 409
+          else if (error.message.includes('(429)')) status = 429
+          else if (error.message.includes('(500)') || error.message.includes('(5')) status = 500
+          
+          // Priority 1: Check for custom messages first based on status code
+          if (status === 400 && messages[400]) {
+            errorMessage = messages[400]
+          } else if (status === 409 && messages[409]) {
+            errorMessage = messages[409]
+          } else if (status === 429 && messages[429]) {
+            errorMessage = messages[429]
+          } else if (status && status >= 500 && messages[500]) {
+            errorMessage = messages[500]
+          } else if (messages.default) {
+            errorMessage = messages.default
+          } else {
+            // Priority 2: Use default fallbacks based on status code
+            if (status === 400) {
+              errorMessage = 'Invalid email address'
+            } else if (status === 409) {
+              errorMessage = 'This email is already subscribed'
+            } else if (status === 429) {
+              errorMessage = 'Too many requests. Please try again later.'
+            } else if (status && status >= 500) {
+              errorMessage = 'Server error. Please try again later.'
+            } else {
+              errorMessage = error.message || 'Subscription failed. Please try again.'
+            }
+          }
+        }
+        
         showError(errorMessage)
         
         if (onError) {
@@ -539,5 +530,110 @@ export class Freshfield {
     container.innerHTML = ''
     container.appendChild(form)
     return container
+  }
+
+  /**
+   * Add an email to the subscription list.
+   * @param email Email address to subscribe
+   * @returns Promise resolving to subscription result
+   * @throws {Error} If SDK not initialized or API request fails
+   */
+  private async addSubscription(email: string): Promise<SubscriptionAddResponse> {
+    if (!this.token) {
+      throw new Error('SDK not initialized. Call init() first.')
+    }
+
+    if (!email || !email.trim()) {
+      throw new Error('Email address is required')
+    }
+
+    const url = new URL(`${API_ENDPOINTS.BASE_URL}/api/widget/subscribe`)
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Widget-Key': this.token,
+      },
+      body: JSON.stringify({ email: email.trim() }),
+    })
+
+    if (!response.ok) {
+      const errorMsg = `Failed to add subscription (${response.status}): ${response.statusText}`
+      throw new Error(errorMsg)
+    }
+
+    return await response.json()
+  }
+
+  /**
+   * Get subscription status of an email address.
+   * @param email Email address to check
+   * @returns Promise resolving to subscription status
+   * @throws {Error} If SDK not initialized or API request fails
+   */
+  private async getSubscriptionStatus(email: string): Promise<SubscriptionStatusResponse> {
+    if (!this.token) {
+      throw new Error('SDK not initialized. Call init() first.')
+    }
+
+    if (!email || !email.trim()) {
+      throw new Error('Email address is required')
+    }
+
+    const url = new URL(`${API_ENDPOINTS.BASE_URL}/api/widget/subscribe`)
+    url.searchParams.set('email', email.trim())
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'X-Widget-Key': this.token,
+      },
+    })
+
+    if (!response.ok) {
+      const errorMsg = `Failed to get subscription status (${response.status}): ${response.statusText}`
+      throw new Error(errorMsg)
+    }
+
+    return await response.json()
+  }
+
+  /**
+   * Update subscription status of an email address.
+   * @param email Email address to update
+   * @param subscribed New subscription status (true = subscribed, false = unsubscribed)
+   * @returns Promise resolving to update result
+   * @throws {Error} If SDK not initialized or API request fails
+   */
+  private async updateSubscriptionStatus(email: string, subscribed: boolean): Promise<SubscriptionUpdateResponse> {
+    if (!this.token) {
+      throw new Error('SDK not initialized. Call init() first.')
+    }
+
+    if (!email || !email.trim()) {
+      throw new Error('Email address is required')
+    }
+
+    const url = new URL(`${API_ENDPOINTS.BASE_URL}/api/widget/subscribe`)
+
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Widget-Key': this.token,
+      },
+      body: JSON.stringify({
+        email: email.trim(),
+        subscribed
+      }),
+    })
+
+    if (!response.ok) {
+      const errorMsg = `Failed to update subscription status (${response.status}): ${response.statusText}`
+      throw new Error(errorMsg)
+    }
+
+    return await response.json()
   }
 }

@@ -9,7 +9,7 @@ export interface FreshfieldHtmlOptions {
   offset?: number
 }
 
-export interface SubscriptionOptions {
+export interface SubscriptionWidgetOptions {
   placeholder?: string
   beforeSend?: (email: string) => Promise<boolean> | boolean
   onSuccess?: (email: string) => void
@@ -31,4 +31,22 @@ export interface SubscriptionOptions {
     loading?: string
     success?: string
   }
+}
+
+export interface SubscriptionStatusResponse {
+  code: number
+  email: string
+  subscribed: boolean
+}
+
+export interface SubscriptionUpdateResponse {
+  code: number
+  message: string
+  email: string
+}
+
+export interface SubscriptionAddResponse {
+  code: number
+  message: string
+  email: string
 }

@@ -33,12 +33,12 @@ freshfield.init("your-api-key");
 
 ## API Reference
 
-|                                                 | Description                                       | Method                             |
-| ----------------------------------------------- | ------------------------------------------------- | ---------------------------------- |
-| **[JSON Updates](#json-updates)**               | Fetch updates in JSON format for custom rendering | `freshfield.json()`                |
-| **[HTML Updates](#html-updates)**               | Display updates in html stucture with css classes | `freshfield.html()`                |
-| **[Subscription Widget](#subscription-widget)** | Email subscription form for new updates           | `freshfield.subscription()`        |
-| **[Last Update Modal](#last-update-modal)**     | Show the most recent update to users in modal     | `freshfield.showLastUpdateModal()` |
+|                                             | Description                                       | Method                             |
+| ------------------------------------------- | ------------------------------------------------- | ---------------------------------- |
+| **[JSON Updates](#json-updates)**           | Fetch updates in JSON format for custom rendering | `freshfield.json()`                |
+| **[HTML Updates](#html-updates)**           | Display updates in html stucture with css classes | `freshfield.html()`                |
+| **[Subscription API](#subscription-api)**   | Email subscription management methods             | `freshfield.subscription.*`        |
+| **[Last Update Modal](#last-update-modal)** | Show the most recent update to users in modal     | `freshfield.showLastUpdateModal()` |
 
 > **Note:** Everything can be styled with CSS. For more information, see the [CSS Customization](#css-customization) section.
 
@@ -150,13 +150,26 @@ await freshfield.html({
 
 ---
 
-### Subscription Widget
+### Subscription API
+
+The subscription API provides multiple methods for managing email subscriptions:
+
+|                                                  | Description                  | Method                                   |
+| ------------------------------------------------ | ---------------------------- | ---------------------------------------- |
+| **[Subscription Widget](#subscription-widget)**  | Display subscription form    | `freshfield.subscription.widget()`       |
+| **[Add Subscription](#add-subscription)**        | Subscribe an email address   | `freshfield.subscription.add()`          |
+| **[Get Status](#get-subscription-status)**       | Check if email is subscribed | `freshfield.subscription.getStatus()`    |
+| **[Update Status](#update-subscription-status)** | Change subscription status   | `freshfield.subscription.updateStatus()` |
+
+---
+
+#### Subscription Widget
 
 > **Important:** This method requires a container element with ID `_ffSubscriptionContainer` in your DOM.
 
 ```javascript
 // Display email subscription form
-freshfield.subscription({
+freshfield.subscription.widget({
   placeholder: "Enter your email...",
   buttonTexts: {
     default: "Subscribe", // Default button text
@@ -216,6 +229,95 @@ freshfield.subscription({
 <div id="_ffSubscriptionContainer">
   <!-- Subscription form will be automatically rendered here -->
 </div>
+```
+
+---
+
+#### Add Subscription
+
+Subscribe an email address directly (core functionality without UI):
+
+```javascript
+// Subscribe an email address
+try {
+  const result = await freshfield.subscription.add("user@example.com");
+  console.log(result.message); // "Email subscribed successfully"
+} catch (error) {
+  console.error("Failed to subscribe:", error.message);
+}
+```
+
+**Returns:**
+
+```json
+{
+  "code": 200,
+  "message": "Email subscribed successfully",
+  "email": "user@example.com"
+}
+```
+
+---
+
+#### Get Subscription Status
+
+Check if an email address is already subscribed:
+
+```javascript
+// Check subscription status
+try {
+  const status = await freshfield.subscription.getStatus("user@example.com");
+
+  console.log(`Email: ${status.email}`);
+  console.log(`Subscribed: ${status.subscribed}`);
+
+  if (status.subscribed) {
+    console.log("User is subscribed!");
+  } else {
+    console.log("User is not subscribed");
+  }
+} catch (error) {
+  console.error("Failed to get status:", error.message);
+}
+```
+
+**Returns:**
+
+```json
+{
+  "code": 200,
+  "email": "user@example.com",
+  "subscribed": true
+}
+```
+
+---
+
+#### Update Subscription Status
+
+Change the subscription status of an email address:
+
+```javascript
+//
+try {
+  const result = await freshfield.subscription.updateStatus(
+    "user@example.com",
+    true // 'true' subscribe a user, 'false' unsubscribe a user
+  );
+  console.log(result.message); // "Email status updated successfully"
+} catch (error) {
+  console.error("Failed to subscribe:", error.message);
+}
+```
+
+**Returns:**
+
+```json
+{
+  "code": 200,
+  "message": "Email status updated successfully",
+  "email": "user@example.com"
+}
 ```
 
 <br/>
