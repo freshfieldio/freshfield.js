@@ -43,6 +43,13 @@ export class Renderer {
     const header = document.createElement('div')
     header.className = '_ffUpdateHeader'
 
+    if (update.version && update.version.trim()) {
+      const version = document.createElement('span')
+      version.className = '_ffUpdateVersion'
+      version.textContent = update.version
+      header.appendChild(version)
+    }
+
     const title = document.createElement('h3')
     title.className = '_ffUpdateTitle'
     title.textContent = update.title

@@ -33,11 +33,12 @@ freshfield.init("your-api-key");
 
 ## API Reference
 
-|                                             | Description                                       | Method                             |
-| ------------------------------------------- | ------------------------------------------------- | ---------------------------------- |
-| **[JSON Updates](#json-updates)**           | Fetch updates in JSON format for custom rendering | `freshfield.json()`                |
-| **[HTML Updates](#html-updates)**           | Display updates in html stucture with css classes | `freshfield.html()`                |
-| **[Last Update Modal](#last-update-modal)** | Show the most recent update to users in modal     | `freshfield.showLastUpdateModal()` |
+|                                                 | Description                                       | Method                             |
+| ----------------------------------------------- | ------------------------------------------------- | ---------------------------------- |
+| **[JSON Updates](#json-updates)**               | Fetch updates in JSON format for custom rendering | `freshfield.json()`                |
+| **[HTML Updates](#html-updates)**               | Display updates in html stucture with css classes | `freshfield.html()`                |
+| **[Subscription Widget](#subscription-widget)** | Email subscription form for new updates           | `freshfield.subscription()`        |
+| **[Last Update Modal](#last-update-modal)**     | Show the most recent update to users in modal     | `freshfield.showLastUpdateModal()` |
 
 > **Note:** Everything can be styled with CSS. For more information, see the [CSS Customization](#css-customization) section.
 
@@ -149,6 +150,78 @@ await freshfield.html({
 
 ---
 
+### Subscription Widget
+
+> **Important:** This method requires a container element with ID `_ffSubscriptionContainer` in your DOM.
+
+```javascript
+// Display email subscription form
+freshfield.subscription({
+  placeholder: "Enter your email...",
+  buttonTexts: {
+    default: "Subscribe", // Default button text
+    loading: "Subscribing...", // Button text during submission
+    success: "Subscribed!", // Button text on success
+  },
+  validationMessages: {
+    required: "Email is required",
+    invalid: "Please enter a valid email address",
+  },
+  messages: {
+    400: "Please enter a valid email address",
+    409: "You've already subscribed!",
+    429: "Too many attempts. Please wait a moment.",
+    500: "Server error. Please try again later.",
+    default: "Something went wrong",
+    cancelled: "Custom validation failed",
+  },
+  beforeSend: async (email) => {
+    // Custom validation before sending
+    return true; // Return false to cancel (false also triggers messages.cancelled)
+  },
+  onSuccess: (email) => {
+    console.log("Subscribed:", email);
+  },
+  onError: (error, email) => {
+    console.log("Failed:", error.message);
+  },
+});
+```
+
+<details>
+<summary><strong>📄 Show HTML Structure Example</strong></summary>
+
+```html
+<div id="_ffSubscriptionContainer">
+  <form class="_ffSubscription">
+    <div class="_ffSubscriptionInputWrapper">
+      <input
+        type="text"
+        class="_ffSubscriptionInput"
+        placeholder="Enter your email..."
+      />
+      <button type="submit" class="_ffSubscriptionButton">Subscribe</button>
+    </div>
+    <div class="_ffSubscriptionError" style="display: none;">
+      <!-- Error messages appear here -->
+    </div>
+  </form>
+</div>
+```
+
+</details>
+
+```html
+<!-- Required container for subscription widget -->
+<div id="_ffSubscriptionContainer">
+  <!-- Subscription form will be automatically rendered here -->
+</div>
+```
+
+<br/>
+
+---
+
 ### Last Update Modal
 
 This code example also includes a basic localstorage function that displays the modal only once. However, you can integrate it in whatever way works best for your application.
@@ -211,6 +284,19 @@ All Freshfield widgets use CSS classes with the `_ff` prefix for easy customizat
 - `._ffFeatureContent` - Feature content container
 - `._ffFeatureName` - Feature name
 - `._ffFeatureDescription` - Feature description
+
+</details>
+
+<details>
+<summary><strong>Subscription Widget Classes</strong></summary>
+
+- `._ffSubscription` - Main subscription form
+- `._ffSubscriptionInputWrapper` - Input and button container
+- `._ffSubscriptionInput` - Email input field
+- `._ffSubscriptionButton` - Submit button
+- `._ffSubscriptionButtonSuccess` - Success state styling
+- `._ffSubscriptionInputError` - Error state styling
+- `._ffSubscriptionError` - Error message display
 
 </details>
 

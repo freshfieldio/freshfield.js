@@ -1,4 +1,4 @@
-import { FreshfieldOptions, FreshfieldHtmlOptions, Update, ModalOptions } from '../types'
+import { FreshfieldOptions, FreshfieldHtmlOptions, Update, ModalOptions, SubscriptionOptions } from '../types'
 import { Utils } from './Utils'
 import { Renderer } from './Renderer'
 import { API_ENDPOINTS, DEFAULT_OPTIONS, SELECTORS } from '../constants'
@@ -178,6 +178,13 @@ export class Freshfield {
   }
 
   private createDefaultModal(content: HTMLElement, update: Update, submitButtonText: string, modal: HTMLElement, onConfirm?: (id: string) => void): void {
+    if (update.version && update.version.trim()) {
+      const version = document.createElement('span')
+      version.className = '_ffUpdateVersion'
+      version.textContent = update.version
+      content.appendChild(version)
+    }
+
     const title = document.createElement('h3')
     title.className = '_ffUpdateTitle'
     title.textContent = update.title
@@ -220,15 +227,17 @@ export class Freshfield {
     const header = document.createElement('div')
     header.className = '_ffUpdateHeader'
 
-    const version = document.createElement('p')
-    version.className = '_ffUpdateVersion'
-    version.textContent = update.version
+    if (update.version && update.version.trim()) {
+      const version = document.createElement('p')
+      version.className = '_ffUpdateVersion'
+      version.textContent = update.version
+      header.appendChild(version)
+    }
 
     const date = document.createElement('p')
     date.className = '_ffUpdateDate'
     date.textContent = new Date(update.created).toLocaleDateString('cs-CZ')
 
-    header.appendChild(version)
     header.appendChild(date)
 
     // Title
@@ -301,5 +310,234 @@ export class Freshfield {
     content.appendChild(title)
     content.appendChild(features)
     content.appendChild(closeButton)
+  }
+
+  /**
+   * Render email subscription widget and inject it into the DOM.
+   * Requires a container element with ID '_ffSubscriptionContainer' in your DOM.
+   * @param options Configuration options for the subscription widget
+   * @param options.placeholder Placeholder text for the email input (default: 'Enter your email...')
+   * @param options.messages Custom error messages for different HTTP status codes
+   * @param options.validationMessages Custom validation messages for client-side validation
+   * @param options.buttonTexts Custom text for different button states (default, loading, success)
+   * @param options.beforeSend Callback for email validation before sending (receives email string)
+   * @param options.onSuccess Callback triggered on successful subscription (receives email string)
+   * @param options.onError Callback triggered on error (receives error and email string)
+   * @returns The container HTML element
+   * @throws {Error} If container element not found or API token not initialized
+   */
+  subscription(options: SubscriptionOptions = {}): HTMLElement {
+    if (!this.token) {
+      throw new Error('SDK not initialized. Call init() first.')
+    }
+
+    const container = document.getElementById(SELECTORS.SUBSCRIPTION_CONTAINER)
+    if (!container) {
+      throw new Error(`Container element with ID "${SELECTORS.SUBSCRIPTION_CONTAINER}" not found`)
+    }
+
+    const {
+      placeholder = DEFAULT_OPTIONS.SUBSCRIPTION_PLACEHOLDER,
+      beforeSend,
+      onSuccess,
+      onError,
+      messages = {},
+      validationMessages = {},
+      buttonTexts = {},
+    } = options
+
+    // Set button text states
+    const buttonText = buttonTexts.default || DEFAULT_OPTIONS.SUBSCRIPTION_BUTTON_TEXT
+    const loadingText = buttonTexts.loading || DEFAULT_OPTIONS.SUBSCRIPTION_LOADING_TEXT
+    const successText = buttonTexts.success || DEFAULT_OPTIONS.SUBSCRIPTION_SUCCESS_TEXT
+
+    Utils.loadStyles()
+
+    // Create subscription form
+    const form = document.createElement('form')
+    form.className = '_ffSubscription'
+
+    const inputWrapper = document.createElement('div')
+    inputWrapper.className = '_ffSubscriptionInputWrapper'
+
+    const emailInput = document.createElement('input')
+    emailInput.type = 'text'
+    emailInput.placeholder = placeholder
+    emailInput.className = '_ffSubscriptionInput'
+
+    const submitButton = document.createElement('button')
+    submitButton.type = 'submit'
+    submitButton.textContent = buttonText
+    submitButton.className = '_ffSubscriptionButton'
+
+    // Error message element
+    const errorElement = document.createElement('div')
+    errorElement.className = '_ffSubscriptionError'
+    errorElement.style.display = 'none'
+
+    inputWrapper.appendChild(emailInput)
+    inputWrapper.appendChild(submitButton)
+    form.appendChild(inputWrapper)
+    form.appendChild(errorElement)
+
+    // Helper functions for validation and error display
+    const showError = (message: string) => {
+      errorElement.textContent = message
+      errorElement.style.display = 'block'
+      emailInput.classList.add('_ffSubscriptionInputError')
+    }
+
+    const clearError = () => {
+      errorElement.style.display = 'none'
+      emailInput.classList.remove('_ffSubscriptionInputError')
+    }
+
+    const validateEmail = (email: string): string | null => {
+      if (!email) {
+        return validationMessages.required || DEFAULT_OPTIONS.SUBSCRIPTION_VALIDATION_REQUIRED
+      }
+      
+      // More thorough email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(email)) {
+        return validationMessages.invalid || DEFAULT_OPTIONS.SUBSCRIPTION_VALIDATION_INVALID
+      }
+      
+      return null
+    }
+
+    // Clear error when user starts typing
+    emailInput.addEventListener('input', () => {
+      if (errorElement.style.display !== 'none') {
+        clearError()
+      }
+    })
+
+    // Handle form submission
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault()
+      
+      const email = emailInput.value.trim()
+      
+      // Clear any previous errors
+      clearError()
+      
+      // Validate email
+      const validationError = validateEmail(email)
+      if (validationError) {
+        showError(validationError)
+        return
+      }
+
+      // Disable form during submission
+      emailInput.disabled = true
+      submitButton.disabled = true
+      submitButton.textContent = loadingText
+
+      const url = new URL(`${API_ENDPOINTS.BASE_URL}/api/widget/subscribe`)
+
+      try {
+        // Run beforeSend validation if provided
+        if (beforeSend) {
+          const shouldProceed = await beforeSend(email)
+          if (!shouldProceed) {
+            showError(messages.cancelled || 'Subscription cancelled')
+            return
+          }
+        }
+
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Widget-Key': this.token,
+          },
+          body: JSON.stringify({ email }),
+        })
+
+        await new Promise(resolve => setTimeout(resolve, 800))
+
+        if (!response.ok) {
+          let errorMessage = 'Subscription failed. Please try again.'
+          
+          // Priority 1: Check for custom messages first
+          if (response.status === 400 && messages[400]) {
+            errorMessage = messages[400]
+          } else if (response.status === 409 && messages[409]) {
+            errorMessage = messages[409]
+          } else if (response.status === 429 && messages[429]) {
+            errorMessage = messages[429]
+          } else if (response.status >= 500 && messages[500]) {
+            errorMessage = messages[500]
+          } else if (messages.default) {
+            errorMessage = messages.default
+          } else {
+            // Priority 2: Try to get server response message
+            try {
+              const errorData = await response.json()
+              
+              if (errorData.message) {
+                errorMessage = errorData.message
+              } else if (errorData.error) {
+                errorMessage = errorData.error
+              } else if (errorData.details) {
+                errorMessage = errorData.details
+              } else if (typeof errorData === 'string') {
+                errorMessage = errorData
+              }
+            } catch (parseError) {
+              // Priority 3: Use default fallbacks
+              if (response.status === 400) {
+                errorMessage = 'Invalid email address'
+              } else if (response.status === 409) {
+                errorMessage = 'This email is already subscribed'
+              } else if (response.status === 429) {
+                errorMessage = 'Too many requests. Please try again later.'
+              } else if (response.status >= 500) {
+                errorMessage = 'Server error. Please try again later.'
+              }
+            }
+          }
+          
+          throw new Error(errorMessage)
+        }
+
+        // Success
+        emailInput.value = ''
+        clearError()
+        if (onSuccess) {
+          onSuccess(email)
+        }
+        
+        submitButton.textContent = successText
+        submitButton.classList.add('_ffSubscriptionButtonSuccess')
+        await setTimeout(() => {
+          submitButton.textContent = buttonText
+          submitButton.classList.remove('_ffSubscriptionButtonSuccess')
+          emailInput.disabled = false
+          submitButton.disabled = false
+        }, 15000)
+
+      } catch (error) {
+        console.error('Subscription error:', error)
+        
+        const errorMessage = error instanceof Error ? error.message : 'Subscription failed. Please try again.'
+        showError(errorMessage)
+        
+        if (onError) {
+          onError(error as Error, email)
+        }
+
+        emailInput.disabled = false
+        submitButton.disabled = false
+        if (submitButton.textContent === loadingText) {
+          submitButton.textContent = buttonText
+        }
+      }
+    })
+
+    container.innerHTML = ''
+    container.appendChild(form)
+    return container
   }
 }

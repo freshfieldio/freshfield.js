@@ -66,6 +66,21 @@ const styles = `
         font-size: 1.2em;
     }
 
+    ._ffUpdateHeader {
+        margin-bottom: 1rem;
+    }
+
+    ._ffUpdateVersion {
+        display: inline-block;
+        background: #333;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
     ._ffUpdateTitle {
         margin: 0 0 1rem 0;
         font-size: 1.25rem;
@@ -265,6 +280,86 @@ const styles = `
 
     .modern ._ffModalClose:hover {
         background: var(--color-dark-semi);
+    }
+
+    /* Subscription Widget Styles */
+    ._ffSubscription {
+        font-family: inherit;
+        width: 100%;
+        max-width: 28rem;
+    }
+
+    ._ffSubscriptionInputWrapper {
+        display: flex;
+        gap: 0.5rem;
+        align-items: stretch;
+    }
+
+    ._ffSubscriptionInput {
+        flex: 1;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 0.875rem;
+        background: white;
+        color: #333;
+        transition: border-color 0.2s ease;
+    }
+
+    ._ffSubscriptionInput:focus {
+        outline: none;
+        border-color: #666;
+        box-shadow: 0 0 0 2px rgba(102, 102, 102, 0.1);
+    }
+
+    ._ffSubscriptionInput:disabled {
+        background: #f5f5f5;
+        cursor: not-allowed;
+    }
+
+    ._ffSubscriptionInput::placeholder {
+        color: #999;
+    }
+
+    ._ffSubscriptionButton {
+        padding: 0.5rem 1rem;
+        background: #333;
+        color: white;
+        border: 1px solid #333;
+        border-radius: 4px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        white-space: nowrap;
+    }
+
+    ._ffSubscriptionButton:hover:not(:disabled) {
+        background: #555;
+    }
+
+    ._ffSubscriptionButton:disabled {
+        background: #999;
+        border-color: #999;
+        cursor: not-allowed;
+    }
+
+    ._ffSubscriptionButtonSuccess {
+        background: #22c55e !important;
+        border-color: #22c55e !important;
+        color: white !important;
+    }
+
+    ._ffSubscriptionInputError {
+        border-color: #dc2626 !important;
+        box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.1) !important;
+    }
+
+    ._ffSubscriptionError {
+        color: #dc2626;
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+        font-weight: 500;
     }
 `
 
