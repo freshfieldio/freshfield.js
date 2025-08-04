@@ -166,7 +166,10 @@ export class Freshfield {
   private showModal(update: Update, onConfirm?: (id: string) => void, submitButtonText: string = DEFAULT_OPTIONS.SUBMIT_BUTTON_TEXT, theme: 'default' | 'modern' = 'default'): void {
     Utils.loadStyles()
 
-    document.querySelectorAll(`.${SELECTORS.MODAL}`).forEach((modal) => modal.remove())
+    document.querySelectorAll(`.${SELECTORS.MODAL}`).forEach((modal) => {
+      modal.remove()
+      this.enableBodyScroll()
+    })
 
     const modal = document.createElement('div')
     modal.className = SELECTORS.MODAL
@@ -182,6 +185,9 @@ export class Freshfield {
 
     modal.appendChild(content)
     document.body.appendChild(modal)
+    
+    // Disable body scroll when modal is shown
+    this.disableBodyScroll()
   }
 
   private createDefaultModal(content: HTMLElement, update: Update, submitButtonText: string, modal: HTMLElement, onConfirm?: (id: string) => void): void {
@@ -218,6 +224,7 @@ export class Freshfield {
       modal.classList.add('_ffClosing')
       setTimeout(() => {
         modal.remove()
+        this.enableBodyScroll()
         if (onConfirm) onConfirm(update.id)
       }, 200)
     })
@@ -251,6 +258,11 @@ export class Freshfield {
     const title = document.createElement('h3')
     title.className = '_ffUpdateTitle'
     title.textContent = update.title
+
+    // Description
+    const description = document.createElement('div')
+    description.className = '_ffUpdateDescription'
+    description.innerHTML = update.description
 
     // Features
     const features = document.createElement('div')
@@ -309,12 +321,14 @@ export class Freshfield {
       modal.classList.add('_ffClosing')
       setTimeout(() => {
         modal.remove()
+        this.enableBodyScroll()
         if (onConfirm) onConfirm(update.id)
       }, 200)
     })
 
     content.appendChild(header)
     content.appendChild(title)
+    content.appendChild(description)
     content.appendChild(features)
     content.appendChild(closeButton)
   }
@@ -635,5 +649,13 @@ export class Freshfield {
     }
 
     return await response.json()
+  }
+
+  private disableBodyScroll(): void {
+    document.body.style.overflow = 'hidden'
+  }
+
+  private enableBodyScroll(): void {
+    document.body.style.overflow = ''
   }
 }

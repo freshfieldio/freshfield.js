@@ -331,7 +331,7 @@ This code example also includes a basic localstorage function that displays the 
 ```javascript
 freshfield.showLastUpdateModal({
   ageLimit: 14,
-  theme: "default" // 'default' or 'modern'
+  theme: "default", // 'default' or 'modern'
   submitButtonText: "Got it!",
   beforeShow: async (id) => {
     const lastSeenId = localStorage.getItem("_ffLastSeenUpdate");
@@ -405,9 +405,29 @@ All Freshfield widgets use CSS classes with the `_ff` prefix for easy customizat
 <details>
 <summary><strong>Last Update Modal Classes</strong></summary>
 
-- `._ffModal` - Modal overlay
-- `._ffModalContent` - Modal content
-- `._ffModalClose` - Close button
+**Modal Structure:**
+
+- `._ffModal` - Modal overlay (with backdrop)
+- `._ffModalContent` - Modal content container
+- `._ffModalContent.modern` - Modern theme styling
+- `._ffModalClose` - Close/submit button
+
+**Update Content:**
+
+- `._ffUpdateHeader` - Update header section
+- `._ffUpdateVersion` - Version badge
+- `._ffUpdateTitle` - Update title
+- `._ffUpdateDate` - Update date
+- `._ffUpdateDescription` - Update description
+- `._ffFeaturesList` - Features list container
+- `._ffFeature` - Individual feature item
+- `._ffFeatureIcon` - Feature icon container
+- `._ffFeatureIconFallback` - Fallback icon styling
+- `._ffFeatureText` - Feature description text
+
+**Animation Classes:**
+
+- `._ffClosing` - Applied during modal close animation
 
 </details>
 
