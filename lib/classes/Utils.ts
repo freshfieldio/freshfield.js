@@ -1,4 +1,4 @@
-const styles = `
+const modalBaseStyles = `
     @keyframes _ffFlyIn {
         0% {
             opacity: 0;
@@ -27,11 +27,12 @@ const styles = `
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.5);
         display: flex;
         align-items: center;
         justify-content: center;
         z-index: 9999;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(3px);
     }
 
     ._ffModalContent {
@@ -45,137 +46,54 @@ const styles = `
         overflow-y: auto;
         position: relative;
         animation: _ffFlyIn 0.3s ease-out;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
     }
 
     ._ffModal._ffClosing ._ffModalContent {
         animation: _ffFlyOut 0.2s ease-in forwards;
     }
+`
 
-    ._ffFeatureIcon {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 1.5em;
-        height: 1.5em;
-    }
-
-    ._ffFeatureIconFallback {
-        color: #666;
-        font-weight: bold;
-        font-size: 1.2em;
-    }
-
-    ._ffUpdateHeader {
-        margin-bottom: 1rem;
-    }
-
-    ._ffUpdateVersion {
-        display: inline-block;
-        background: #333;
-        color: white;
-        padding: 0.25rem 0.5rem;
-        border-radius: 0.25rem;
-        font-size: 0.75rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-    }
-
-    ._ffUpdateTitle {
-        margin: 0 0 1rem 0;
-        font-size: 1.25rem;
-        font-weight: normal;
-    }
-
-    ._ffUpdateDate {
-        display: block;
-        margin-bottom: 1rem;
-        font-size: 0.875rem;
-    }
-
-    ._ffUpdateDescription {
-        margin-bottom: 1rem;
-        line-height: 1.4;
-    }
-
-    ._ffFeaturesList {
-        margin-bottom: 1rem;
-    }
-
-    ._ffFeature {
-        display: flex;
-        align-items: flex-start;
-        margin-bottom: 0.5rem;
-        padding: 0.5rem;
-        border: 1px solid #e0e0e0;
-        border-radius: 4px;
-    }
-
-    ._ffFeature:last-child {
-        margin-bottom: 0;
-    }
-
-    ._ffFeatureText {
-        margin-left: 0.5rem;
-        font-size: 0.875rem;
-    }
-
-    ._ffModalClose {
-        width: 100%;
-        padding: 0.5rem 1rem;
-        background: #f0f0f0;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        font-size: 0.875rem;
-        cursor: pointer;
-    }
-
-    ._ffModalClose:hover {
-        background: #e0e0e0;
-    }
-
-    ._ffModalContent.modern {
-        --color-orange: oklch(0.73 0.1615 39.96);
+const carrotModalStyles = `
+    ._ffModalContent {
         --color-green: oklch(0.63 0.108 163.14);
-        --color-red: oklch(0.62 0.2058 33.23);
-        --color-blue: oklch(0.61 0.095 228.13);
         --color-light: oklch(0.99 0.0058 59.65);
         --color-light-soft: oklch(0.95 0.0067 53.45);
         --color-dark: oklch(0.25 0.0128 170.49);
         --color-dark-semi: oklch(0.36 0.0044 174.22);
         --color-middle: oklch(0.47 0.0082 174.07);
-        --color-white: oklch(0.9975 0.0017 67.8);
-        --color-black: oklch(0 0 0);
+        --color-orange: oklch(0.73 0.1615 39.96);
+        --color-blue: oklch(0.61 0.095 228.13);
+        --color-green: oklch(0.63 0.108 163.14);
 
         display: flex;
         flex-direction: column;
         gap: 0.25rem;
         border-radius: 1.5rem;
-        border: 2px solid var(--color-middle);
+        border: 2px solid var(--color-light-soft);
         background: var(--color-light);
         padding: 1.25rem;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         width: 100%;
         max-width: 35rem;
         margin: 0.625rem;
     }
 
-    .modern ._ffUpdateHeader {
+    ._ffUpdateHeader {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
+        gap: 0.5rem;
     }
 
-    .modern ._ffUpdateVersion {
+    ._ffUpdateVersion {
         border-radius: 9999px;
-        background: var(--color-middle);
+        background: var(--color-green);
         padding: 0.125rem 0.75rem;
         font-size: 0.875rem;
         font-weight: 600;
         color: var(--color-light);
     }
 
-    .modern ._ffUpdateDate {
+    ._ffUpdateDate {
         font-size: 0.875rem;
         font-weight: 500;
         color: var(--color-middle);
@@ -183,43 +101,38 @@ const styles = `
         display: block;
     }
 
-    ._ffModalContent.modern ._ffUpdateTitle {
+    ._ffUpdateTitle {
         margin-bottom: 0.25rem;
         font-size: 1.5rem;
         line-height: 2rem;
         font-weight: 600;
-        color: color-mix(in srgb, var(--color-dark-semi) 90%, transparent);
+        color: var(--color-dark);
         margin-top: 0;
     }
 
-    ._ffModalContent.modern ._ffFeaturesList {
-        margin-top: 0.75rem;
+    ._ffUpdateDescription {
+        font-size: 0.9rem;
+        color: var(--color-middle);
+    }
+
+    ._ffFeaturesList {
+        margin-top: 1rem;
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
     }
 
-    ._ffModalContent.modern ._ffFeature {
+    ._ffFeature {
         border-radius: 0.75rem;
-        background: var(--color-light-soft);
+        background: var(--color-light);
+        border: 2px solid var(--color-light-soft);
         padding: 0.625rem 0.75rem;
         margin: 0;
-        border: none;
         display: block;
         align-items: unset;
     }
 
-    ._ffModalContent.modern ._ffFeature ._ffFeatureText {
-        margin-top: 0.125rem;
-    }
-
-    ._ffModalContent.modern ._ffFeatureHeader {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    ._ffModalContent.modern ._ffFeatureIcon {
+    ._ffFeatureIcon {
         border-radius: 0.25rem;
         font-size: 1.25rem;
         line-height: 1.75rem;
@@ -231,46 +144,72 @@ const styles = `
         flex-shrink: 0;
     }
 
-    ._ffModalContent.modern ._ffFeatureIcon svg {
+    ._ffFeatureIcon svg {
         width: 100%;
         height: 100%;
+        color: var(--color-dark);
     }
 
-    ._ffModalContent.modern ._ffFeatureIconFallback {
-        color: var(--color-middle);
+    ._ffFeatureIconFallback {
+        color: var(--color-dark);
         font-weight: bold;
         font-size: 1em;
     }
 
-    ._ffModalContent.modern ._ffFeatureTitle {
+    ._ffFeature ._ffFeatureDescription {
+        margin-top: 0.125rem;
+        color: var(--color-middle);
+    }
+
+    ._ffFeatureHeader {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    ._ffFeatureTitle {
         font-weight: 600;
         color: var(--color-dark);
         margin: 0;
         font-size: 1rem;
     }
 
-    ._ffModalContent.modern ._ffFeatureLabel {
-        border-radius: 0.25rem;
-        padding: 0.125rem 0.5rem;
-        font-size: 0.75rem;
+    ._ffFeatureLabel {
+        border-radius: 9999px;
+        padding: 0.125rem 0.55rem;
+        font-size: 0.8rem;
         line-height: 1.25rem;
         font-weight: 600;
-        text-transform: uppercase;
-        color: var(--color-green);
         margin-left: auto;
     }
 
-    ._ffModalContent.modern ._ffFeatureText {
+    ._ffFeatureLabel-new{
+        background-color: color-mix(in srgb, var(--color-green) 15%, transparent);
+        color: var(--color-green);
+    }
+
+    ._ffFeatureLabel-fix {
+        background-color: color-mix(in srgb, var(--color-orange) 15%, transparent);
+        color: var(--color-orange);
+    }
+
+    ._ffFeatureLabel-improvement {
+        background-color: color-mix(in srgb, var(--color-blue) 15%, transparent);
+        color: var(--color-blue);
+    }
+
+    ._ffFeatureDescription {
         margin-left: 1.75rem;
         font-size: 0.875rem;
         line-height: 1.25rem;
         color: var(--color-middle);
     }
 
-    ._ffModalContent.modern ._ffModalClose {
-        margin-top: 1rem;
+    ._ffModalClose {
+        margin-top: 1.5rem;
         border-radius: 0.75rem;
         background: var(--color-dark);
+        transition: background 0.2s ease;
         color: var(--color-light);
         padding: 0.75rem 1.5rem;
         font-weight: 600;
@@ -278,11 +217,12 @@ const styles = `
         width: 100%;
     }
 
-    ._ffModalContent.modern ._ffModalClose:hover {
+    ._ffModalClose:hover {
         background: var(--color-dark-semi);
     }
+`
 
-    /* Subscription Widget Styles */
+const subscriptionWidgetStyles = `
     ._ffSubscription {
         font-family: inherit;
         width: 100%;
@@ -365,7 +305,6 @@ const styles = `
 
 import { API_ENDPOINTS, SELECTORS } from '../constants'
 
-
 export class Utils {
   static async getIconSvg(icon: string): Promise<string> {
     const [prefix, name] = icon.split(':')
@@ -411,13 +350,22 @@ export class Utils {
     }
   }
 
-
-  static loadStyles(): void {
-    if (!document.getElementById(SELECTORS.STYLES)) {
-      const style = document.createElement('style')
-      style.id = SELECTORS.STYLES
-      style.textContent = styles
-      document.head.appendChild(style)
+  static loadStyles(theme?: 'carrot' | 'none'): void {
+    const existingStyle = document.getElementById(SELECTORS.STYLES)
+    if (existingStyle) {
+      existingStyle.remove()
     }
+
+    const style = document.createElement('style')
+    style.id = SELECTORS.STYLES
+    
+    let stylesToLoad = modalBaseStyles + subscriptionWidgetStyles
+    
+    if (theme === 'carrot') {
+      stylesToLoad += carrotModalStyles
+    }
+    
+    style.textContent = stylesToLoad
+    document.head.appendChild(style)
   }
 }

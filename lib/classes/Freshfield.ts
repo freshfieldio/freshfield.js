@@ -7,10 +7,49 @@ import { API_ENDPOINTS, DEFAULT_OPTIONS, SELECTORS } from '../constants'
 export class Freshfield {
   private token: string = ''
   
+  /**
+   * Email subscription management methods
+   */
   public subscription = {
+    /**
+     * Render email subscription widget and inject it into the DOM.
+     * Requires a container element with ID '_ffSubscriptionContainer' in your DOM.
+     * @param options Configuration options for the subscription widget
+     * @param options.placeholder Placeholder text for the email input (default: 'Enter your email...')
+     * @param options.messages Custom error messages for different HTTP status codes
+     * @param options.validationMessages Custom validation messages for client-side validation
+     * @param options.buttonTexts Custom text for different button states (default, loading, success)
+     * @param options.beforeSend Callback for email validation before sending (receives email string)
+     * @param options.onSuccess Callback triggered on successful subscription (receives email string)
+     * @param options.onError Callback triggered on error (receives error and email string)
+     * @returns The container HTML element
+     * @throws {Error} If container element not found or API token not initialized
+     */
     widget: this.subscriptionWidget.bind(this),
+    
+    /**
+     * Add an email to the subscription list.
+     * @param email Email address to subscribe
+     * @returns Promise resolving to subscription result
+     * @throws {Error} If SDK not initialized or API request fails
+     */
     add: this.addSubscription.bind(this),
+    
+    /**
+     * Get subscription status of an email address.
+     * @param email Email address to check
+     * @returns Promise resolving to subscription status
+     * @throws {Error} If SDK not initialized or API request fails
+     */
     getStatus: this.getSubscriptionStatus.bind(this),
+    
+    /**
+     * Update subscription status of an email address.
+     * @param email Email address to update
+     * @param subscribed New subscription status (true = subscribed, false = unsubscribed)
+     * @returns Promise resolving to update result
+     * @throws {Error} If SDK not initialized or API request fails
+     */
     updateStatus: this.updateSubscriptionStatus.bind(this),
   }
 
@@ -134,7 +173,7 @@ export class Freshfield {
    * @param options.onConfirm Callback triggered when user confirms the modal (receives update ID)
    * @param options.ageLimit Maximum age in days for update to be shown (default: 14)
    * @param options.submitButtonText Custom text for the submit button (default: 'Got it!')
-   * @param options.theme Style variant for the modal - 'default' or 'modern' (default: 'default')
+   * @param options.theme Style variant for the modal - 'carrot' or 'none' (default: 'carrot')
    * @throws {Error} If there's an error fetching the latest update
    */
   async showLastUpdateModal(options: ModalOptions): Promise<void> {
@@ -143,7 +182,7 @@ export class Freshfield {
       onConfirm,
       ageLimit = DEFAULT_OPTIONS.AGE_LIMIT,
       submitButtonText = DEFAULT_OPTIONS.SUBMIT_BUTTON_TEXT,
-      theme = 'default',
+      theme = 'carrot',
     } = options
     try {
       const [latestUpdate] = await this.json({ limit: 1 })
@@ -163,8 +202,8 @@ export class Freshfield {
     }
   }
 
-  private showModal(update: Update, onConfirm?: (id: string) => void, submitButtonText: string = DEFAULT_OPTIONS.SUBMIT_BUTTON_TEXT, theme: 'default' | 'modern' = 'default'): void {
-    Utils.loadStyles()
+  private showModal(update: Update, onConfirm?: (id: string) => void, submitButtonText: string = DEFAULT_OPTIONS.SUBMIT_BUTTON_TEXT, theme: 'carrot' | 'none' = 'carrot'): void {
+    Utils.loadStyles(theme)
 
     document.querySelectorAll(`.${SELECTORS.MODAL}`).forEach((modal) => {
       modal.remove()
@@ -175,84 +214,42 @@ export class Freshfield {
     modal.className = SELECTORS.MODAL
 
     const content = document.createElement('div')
-    content.className = theme === 'modern' ? '_ffModalContent modern' : '_ffModalContent'
-
-    if (theme === 'modern') {
-      this.createModernModal(content, update, submitButtonText, modal, onConfirm)
-    } else {
-      this.createDefaultModal(content, update, submitButtonText, modal, onConfirm)
-    }
+    content.className = '_ffModalContent'
+    
+    this.createModalContent(content, update, submitButtonText, modal, theme, onConfirm)
 
     modal.appendChild(content)
     document.body.appendChild(modal)
     
-    // Disable body scroll when modal is shown
     this.disableBodyScroll()
   }
 
-  private createDefaultModal(content: HTMLElement, update: Update, submitButtonText: string, modal: HTMLElement, onConfirm?: (id: string) => void): void {
-    if (update.version && update.version.trim()) {
-      const version = document.createElement('span')
-      version.className = '_ffUpdateVersion'
-      version.textContent = update.version
-      content.appendChild(version)
-    }
-
-    const title = document.createElement('h3')
-    title.className = '_ffUpdateTitle'
-    title.textContent = update.title
-
-    const date = document.createElement('time')
-    date.className = '_ffUpdateDate'
-    date.textContent = new Date(update.created).toLocaleDateString()
-
-    const description = document.createElement('div')
-    description.className = '_ffUpdateDescription'
-    description.innerHTML = update.description
-
-    const features = document.createElement('div')
-    features.className = '_ffFeaturesList'
-
-    update.features.forEach((feature) => {
-      features.appendChild(Renderer.createFeatureElement(feature))
-    })
-
-    const closeButton = document.createElement('button')
-    closeButton.className = '_ffModalClose'
-    closeButton.textContent = submitButtonText
-    closeButton.addEventListener('click', () => {
-      modal.classList.add('_ffClosing')
-      setTimeout(() => {
-        modal.remove()
-        this.enableBodyScroll()
-        if (onConfirm) onConfirm(update.id)
-      }, 200)
-    })
-
-    content.appendChild(title)
-    content.appendChild(date)
-    content.appendChild(description)
-    content.appendChild(features)
-    content.appendChild(closeButton)
-  }
-
-  private createModernModal(content: HTMLElement, update: Update, submitButtonText: string, modal: HTMLElement, onConfirm?: (id: string) => void): void {
-    // Header with version and date
-    const header = document.createElement('div')
-    header.className = '_ffUpdateHeader'
+  private createModalContent(content: HTMLElement, update: Update, submitButtonText: string, modal: HTMLElement, theme: 'carrot' | 'none', onConfirm?: (id: string) => void): void {
+    // Version and date elements
+    let versionElement: HTMLElement | null = null
+    let dateElement: HTMLElement
 
     if (update.version && update.version.trim()) {
-      const version = document.createElement('p')
-      version.className = '_ffUpdateVersion'
-      version.textContent = update.version
-      header.appendChild(version)
+      versionElement = document.createElement(theme === 'carrot' ? 'p' : 'span')
+      versionElement.className = '_ffUpdateVersion'
+      versionElement.textContent = update.version
     }
 
-    const date = document.createElement('p')
-    date.className = '_ffUpdateDate'
-    date.textContent = new Date(update.created).toLocaleDateString('cs-CZ')
+    dateElement = document.createElement(theme === 'carrot' ? 'p' : 'time')
+    dateElement.className = '_ffUpdateDate'
+    dateElement.textContent = new Date(update.created).toLocaleDateString()
 
-    header.appendChild(date)
+    if (theme === 'carrot') {
+      const header = document.createElement('div')
+      header.className = '_ffUpdateHeader'
+      
+      if (versionElement) header.appendChild(versionElement)
+      header.appendChild(dateElement)
+      content.appendChild(header)
+    } else {
+      if (versionElement) content.appendChild(versionElement)
+      content.appendChild(dateElement)
+    }
 
     // Title
     const title = document.createElement('h3')
@@ -269,44 +266,41 @@ export class Freshfield {
     features.className = '_ffFeaturesList'
 
     update.features.forEach((feature) => {
-      // Main feature container - space-y-0.5 rounded-xl bg-light-soft px-3 py-2.5
       const featureEl = document.createElement('div')
       featureEl.className = '_ffFeature'
 
-      // Header row - flex items-center gap-2
       const featureHeader = document.createElement('div')
       featureHeader.className = '_ffFeatureHeader'
 
-      // Icon - rounded text-xl
+      // Feature icon
       if (feature.icon && feature.icon.trim()) {
         const icon = document.createElement('span')
         icon.className = '_ffFeatureIcon'
         icon.innerHTML = feature.icon
         featureHeader.appendChild(icon)
       } else {
-        // Add a simple text-based fallback icon
         const icon = document.createElement('span')
         icon.className = '_ffFeatureIcon _ffFeatureIconFallback'
         icon.textContent = '•'
         featureHeader.appendChild(icon)
       }
 
-      // Title - font-semibold text-dark
+      // Feature title
       const featureTitle = document.createElement('h3')
       featureTitle.className = '_ffFeatureTitle'
       featureTitle.textContent = feature.name
 
-      // Label - rounded px-2 py-0.5 text-sm font-semibold uppercase text-green
+      // Feature type label
       const featureLabel = document.createElement('span')
-      featureLabel.className = '_ffFeatureLabel'
+      featureLabel.className = `_ffFeatureLabel _ffFeatureLabel-${feature.type}`
       featureLabel.textContent = feature.type
 
       featureHeader.appendChild(featureTitle)
       featureHeader.appendChild(featureLabel)
 
-      // Description - ml-7 text-sm text-middle
+      // Feature description
       const featureText = document.createElement('p')
-      featureText.className = '_ffFeatureText'
+      featureText.className = '_ffFeatureDescription'
       featureText.textContent = feature.description
 
       featureEl.appendChild(featureHeader)
@@ -314,6 +308,7 @@ export class Freshfield {
       features.appendChild(featureEl)
     })
 
+    // Close button
     const closeButton = document.createElement('button')
     closeButton.className = '_ffModalClose'
     closeButton.textContent = submitButtonText
@@ -326,27 +321,13 @@ export class Freshfield {
       }, 200)
     })
 
-    content.appendChild(header)
+    // Append content elements
     content.appendChild(title)
     content.appendChild(description)
     content.appendChild(features)
     content.appendChild(closeButton)
   }
 
-  /**
-   * Render email subscription widget and inject it into the DOM.
-   * Requires a container element with ID '_ffSubscriptionContainer' in your DOM.
-   * @param options Configuration options for the subscription widget
-   * @param options.placeholder Placeholder text for the email input (default: 'Enter your email...')
-   * @param options.messages Custom error messages for different HTTP status codes
-   * @param options.validationMessages Custom validation messages for client-side validation
-   * @param options.buttonTexts Custom text for different button states (default, loading, success)
-   * @param options.beforeSend Callback for email validation before sending (receives email string)
-   * @param options.onSuccess Callback triggered on successful subscription (receives email string)
-   * @param options.onError Callback triggered on error (receives error and email string)
-   * @returns The container HTML element
-   * @throws {Error} If container element not found or API token not initialized
-   */
   private subscriptionWidget(options: SubscriptionWidgetOptions = {}): HTMLElement {
     if (!this.token) {
       throw new Error('SDK not initialized. Call init() first.')
@@ -546,12 +527,6 @@ export class Freshfield {
     return container
   }
 
-  /**
-   * Add an email to the subscription list.
-   * @param email Email address to subscribe
-   * @returns Promise resolving to subscription result
-   * @throws {Error} If SDK not initialized or API request fails
-   */
   private async addSubscription(email: string): Promise<SubscriptionAddResponse> {
     if (!this.token) {
       throw new Error('SDK not initialized. Call init() first.')
@@ -580,12 +555,6 @@ export class Freshfield {
     return await response.json()
   }
 
-  /**
-   * Get subscription status of an email address.
-   * @param email Email address to check
-   * @returns Promise resolving to subscription status
-   * @throws {Error} If SDK not initialized or API request fails
-   */
   private async getSubscriptionStatus(email: string): Promise<SubscriptionStatusResponse> {
     if (!this.token) {
       throw new Error('SDK not initialized. Call init() first.')
@@ -613,13 +582,6 @@ export class Freshfield {
     return await response.json()
   }
 
-  /**
-   * Update subscription status of an email address.
-   * @param email Email address to update
-   * @param subscribed New subscription status (true = subscribed, false = unsubscribed)
-   * @returns Promise resolving to update result
-   * @throws {Error} If SDK not initialized or API request fails
-   */
   private async updateSubscriptionStatus(email: string, subscribed: boolean): Promise<SubscriptionUpdateResponse> {
     if (!this.token) {
       throw new Error('SDK not initialized. Call init() first.')

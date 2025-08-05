@@ -115,21 +115,24 @@ await freshfield.html({
   <div class="_ffUpdatesList">
     <div class="_ffUpdate">
       <div class="_ffUpdateHeader">
+        <span class="_ffUpdateVersion">v1.2.0</span>
+        <time class="_ffUpdateDate">January 15, 2024</time>
         <h3 class="_ffUpdateTitle">New Features Released</h3>
-        <span class="_ffUpdateDate">January 15, 2024</span>
       </div>
       <div class="_ffUpdateDescription">
-        We've added several new features...
+        <p>We've added several new features...</p>
+        <!-- The description is rendered as HTML from Markdown. -->
       </div>
       <div class="_ffFeaturesList">
-        <div class="_ffFeature _ffFeature-new">
-          <div class="_ffFeatureIcon">✨</div>
-          <div class="_ffFeatureContent">
-            <div class="_ffFeatureName">Dark Mode</div>
-            <div class="_ffFeatureDescription">
-              Switch between light and dark themes
-            </div>
+        <div class="_ffFeature">
+          <div class="_ffFeatureHeader">
+            <span class="_ffFeatureIcon">...</span>
+            <h3 class="_ffFeatureTitle">Dark Theme</h3>
+            <span class="_ffFeatureLabel _ffFeatureLabel-new">new</span>
           </div>
+          <p class="_ffFeatureDescription">
+            Switch between light and dark themes
+          </p>
         </div>
       </div>
     </div>
@@ -298,7 +301,6 @@ try {
 Change the subscription status of an email address:
 
 ```javascript
-//
 try {
   const result = await freshfield.subscription.updateStatus(
     "user@example.com",
@@ -331,7 +333,7 @@ This code example also includes a basic localstorage function that displays the 
 ```javascript
 freshfield.showLastUpdateModal({
   ageLimit: 14,
-  theme: "default", // 'default' or 'modern'
+  theme: "carrot", // 'carrot' or 'none'
   submitButtonText: "Got it!",
   beforeShow: async (id) => {
     const lastSeenId = localStorage.getItem("_ffLastSeenUpdate");
@@ -346,10 +348,14 @@ freshfield.showLastUpdateModal({
 **Parameters:**
 
 - `beforeShow`: **Required** function that determines whether to show the modal. Return `true` to show, `false` to skip.
-- `onConfirm`: **Required** callback when user clicks the submit button.
+- `onConfirm`: Callback when user clicks the submit button.
 - `ageLimit`: Only show modal when update is newer than this many days.
 
-<br/>
+**Theme Options:**
+
+- **`carrot`**: Modal design that is the same as on the Freshfield platform
+- **`none`**: Pure HTML structure with semantic classes but **zero CSS styling** - users provide all styling from scratch
+  <br/>
 
 ---
 
@@ -359,11 +365,21 @@ freshfield.showLastUpdateModal({
 
 ## CSS Customization
 
-All Freshfield widgets use CSS classes with the `_ff` prefix for easy customization.
-
-**Notes:**
-
-- For theme-specific overrides, use `._ffModalContent.modern ._ffElement` pattern
+> **Important:** For rewriting default styles without `!important` use css selectors like this:
+>
+> ```css
+> ._ffModal ._ffUpdateTitle {
+>   color: red;
+> }
+> ```
+>
+> NOT ONLY
+>
+> ```css
+> ._ffUpdateTitle {
+>   color: red; /* otherwise, you need to use `!important` here */
+> }
+> ```
 
 <details>
 <summary><strong>HTML Updates Classes</strong></summary>
@@ -385,9 +401,6 @@ All Freshfield widgets use CSS classes with the `_ff` prefix for easy customizat
 
 - `._ffFeaturesList` - Features list container
 - `._ffFeature` - Individual feature container
-- `._ffFeature-new` - New feature type styling
-- `._ffFeature-fix` - Bug fix type styling
-- `._ffFeature-improvement` - Improvement type styling
 - `._ffFeatureIcon` - Feature icon container
 - `._ffFeatureIconFallback` - Fallback icon styling
 
@@ -401,8 +414,11 @@ All Freshfield widgets use CSS classes with the `_ff` prefix for easy customizat
 
 - `._ffFeatureHeader` - Feature header section
 - `._ffFeatureTitle` - Feature title (h3)
-- `._ffFeatureLabel` - Feature type label
-- `._ffFeatureText` - Feature description text
+- `._ffFeatureLabel` - Feature type label badge
+- `._ffFeatureLabel-new` - New feature label styling (green background)
+- `._ffFeatureLabel-fix` - Bug fix label styling (red background)
+- `._ffFeatureLabel-improvement` - Improvement label styling (blue background)
+- `._ffFeatureDescription` - Feature description text
 
 </details>
 
@@ -426,7 +442,6 @@ All Freshfield widgets use CSS classes with the `_ff` prefix for easy customizat
 
 - `._ffModal` - Modal overlay (with backdrop)
 - `._ffModalContent` - Modal content container
-- `._ffModalContent.modern` - Modern theme styling
 - `._ffModalClose` - Close/submit button
 
 **Update Content:**
@@ -452,8 +467,8 @@ _See "Features Classes" section above for complete modal feature styling classes
 
 **Required Container IDs:**
 
-- `._ffUpdatesContainer` - Required container element for HTML updates
-- `._ffSubscriptionContainer` - Required container element for subscription widget
+- `_ffUpdatesContainer` - Required container element for HTML updates
+- `_ffSubscriptionContainer` - Required container element for subscription widget
 
 **Utility Classes:**
 

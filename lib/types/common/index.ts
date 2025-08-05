@@ -17,7 +17,7 @@ export interface Feature {
 export interface ModalOptions {
   ageLimit?: number;
   beforeShow: (id: string) => Promise<boolean>;
-  onConfirm: (id: string) => void;
+  onConfirm?: (id: string) => void;
   submitButtonText?: string;
-  theme?: 'default' | 'modern';
+  theme?: 'carrot' | 'none';
 }

@@ -3,7 +3,7 @@ import { Feature, Update } from '../types'
 export class Renderer {
   static createFeatureElement(feature: Feature): HTMLElement {
     const featureEl = document.createElement('div')
-    featureEl.className = `_ffFeature _ffFeature-${feature.type}`
+    featureEl.className = '_ffFeature'
 
     if (feature.icon && feature.icon.trim()) {
       const icon = document.createElement('span')
