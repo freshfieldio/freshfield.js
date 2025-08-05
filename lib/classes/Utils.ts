@@ -1,3 +1,16 @@
+const colors = `
+    --color-green: oklch(0.63 0.108 163.14);
+    --color-light: oklch(0.99 0.0058 59.65);
+    --color-light-soft: oklch(0.95 0.0067 53.45);
+    --color-dark: oklch(0.25 0.0128 170.49);
+    --color-dark-semi: oklch(0.36 0.0044 174.22);
+    --color-middle: oklch(0.47 0.0082 174.07);
+    --color-orange: oklch(0.73 0.1615 39.96);
+    --color-blue: oklch(0.61 0.095 228.13);
+    --color-green: oklch(0.63 0.108 163.14);
+    --color-red: oklch(0.62 0.2058 33.23);
+`
+
 const modalBaseStyles = `
     @keyframes _ffFlyIn {
         0% {
@@ -56,16 +69,7 @@ const modalBaseStyles = `
 
 const carrotModalStyles = `
     ._ffModalContent {
-        --color-green: oklch(0.63 0.108 163.14);
-        --color-light: oklch(0.99 0.0058 59.65);
-        --color-light-soft: oklch(0.95 0.0067 53.45);
-        --color-dark: oklch(0.25 0.0128 170.49);
-        --color-dark-semi: oklch(0.36 0.0044 174.22);
-        --color-middle: oklch(0.47 0.0082 174.07);
-        --color-orange: oklch(0.73 0.1615 39.96);
-        --color-blue: oklch(0.61 0.095 228.13);
-        --color-green: oklch(0.63 0.108 163.14);
-
+        ${colors}
         display: flex;
         flex-direction: column;
         gap: 0.25rem;
@@ -224,6 +228,7 @@ const carrotModalStyles = `
 
 const subscriptionWidgetStyles = `
     ._ffSubscription {
+        ${colors}
         font-family: inherit;
         width: 100%;
         max-width: 28rem;
@@ -238,35 +243,33 @@ const subscriptionWidgetStyles = `
     ._ffSubscriptionInput {
         flex: 1;
         padding: 0.5rem 0.75rem;
-        border: 1px solid #ccc;
-        border-radius: 4px;
+        border: 2px solid var(--color-light-soft);
+        border-radius: 0.5rem;
         font-size: 0.875rem;
         background: white;
-        color: #333;
+        color: var(--color-dark);
         transition: border-color 0.2s ease;
     }
-
+    
     ._ffSubscriptionInput:focus {
         outline: none;
-        border-color: #666;
-        box-shadow: 0 0 0 2px rgba(102, 102, 102, 0.1);
+        border-color: var(--color-middle);
     }
 
     ._ffSubscriptionInput:disabled {
-        background: #f5f5f5;
+        background: var(--color-light);
         cursor: not-allowed;
     }
 
     ._ffSubscriptionInput::placeholder {
-        color: #999;
+        color: color-mix(in srgb, var(--color-middle) 50%, transparent);
     }
 
     ._ffSubscriptionButton {
         padding: 0.5rem 1rem;
-        background: #333;
-        color: white;
-        border: 1px solid #333;
-        border-radius: 4px;
+        background: var(--color-dark);
+        color: var(--color-light);
+        border-radius: 0.5rem;
         font-size: 0.875rem;
         font-weight: 500;
         cursor: pointer;
@@ -275,30 +278,32 @@ const subscriptionWidgetStyles = `
     }
 
     ._ffSubscriptionButton:hover:not(:disabled) {
-        background: #555;
+        background: var(--color-dark-semi);
     }
 
     ._ffSubscriptionButton:disabled {
-        background: #999;
-        border-color: #999;
+        background: color-mix(in srgb, var(--color-dark) 50%, transparent);
         cursor: not-allowed;
     }
 
     ._ffSubscriptionButtonSuccess {
-        background: #22c55e;
-        border-color: #22c55e;
-        color: white;
+        background: var(--color-green);
+        color: var(--color-light);
+    }
+
+    ._ffSubscriptionButtonSuccess:disabled {
+        background: var(--color-green);
+        cursor: not-allowed;
     }
 
     ._ffSubscriptionInputError {
-        border-color: #dc2626;
-        box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.1);
+        border-color: var(--color-red);
     }
 
     ._ffSubscriptionError {
-        color: #dc2626;
+        color: var(--color-red);
         font-size: 0.75rem;
-        margin-top: 0.25rem;
+        margin-top: 0.2rem;
         font-weight: 500;
     }
 `
