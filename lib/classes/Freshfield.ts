@@ -92,7 +92,7 @@ export class Freshfield {
 
     const res = await fetch(url, {
       headers: {
-        'X-Widget-Key': this.token,
+        'X-Api-Key': this.token,
       },
     })
 
@@ -542,7 +542,7 @@ export class Freshfield {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Widget-Key': this.token,
+        'X-Api-Key': this.token,
       },
       body: JSON.stringify({ email: email.trim() }),
     })
@@ -570,7 +570,7 @@ export class Freshfield {
     const response = await fetch(url, {
       method: 'GET',
       headers: {
-        'X-Widget-Key': this.token,
+        'X-Api-Key': this.token,
       },
     })
 
@@ -597,7 +597,7 @@ export class Freshfield {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'X-Widget-Key': this.token,
+        'X-Api-Key': this.token,
       },
       body: JSON.stringify({
         email: email.trim(),
