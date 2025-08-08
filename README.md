@@ -256,9 +256,25 @@ try {
 {
   "code": 200,
   "message": "Email subscribed successfully",
-  "email": "user@example.com"
+  "data": {
+    "email": "user@example.com"
+  }
 }
 ```
+
+Example when an error occurs:
+
+```json
+{
+  "code": 409,
+  "message": "You've already subscribed",
+  "data": {
+    "email": "user@example.com"
+  }
+}
+```
+
+()
 
 ---
 
@@ -289,8 +305,11 @@ try {
 ```json
 {
   "code": 200,
-  "email": "user@example.com",
-  "subscribed": true
+  "message": "Email status retrieved successfully",
+  "data": {
+    "email": "user@example.com",
+    "subscribed": true
+  }
 }
 ```
 
@@ -318,7 +337,9 @@ try {
 {
   "code": 200,
   "message": "Email status updated successfully",
-  "email": "user@example.com"
+  "data": {
+    "email": "user@example.com"
+  }
 }
 ```
 
