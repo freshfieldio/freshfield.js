@@ -450,64 +450,64 @@ export class Freshfield {
         await new Promise(resolve => setTimeout(resolve, 1000))
         
         // Use the core subscription method
-        await this.addSubscription(email)
+        const response = await this.addSubscription(email)
 
-        // Success
-        emailInput.value = ''
-        clearError()
-        if (onSuccess) {
-          onSuccess(email)
-        }
-        
-        submitButton.textContent = successText
-        submitButton.classList.add('_ffSubscriptionButtonSuccess')
-        await setTimeout(() => {
-          submitButton.textContent = buttonText
-          submitButton.classList.remove('_ffSubscriptionButtonSuccess')
-          emailInput.disabled = false
-          submitButton.disabled = false
-        }, 15000)
-
-      } catch (error) {
-        console.error('Subscription error:', error)
-        
-        let errorMessage = 'Subscription failed. Please try again.'
-        
-        if (error instanceof Error) {
-          // Extract status code from error message
-          let status: number | undefined
-          if (error.message.includes('(400)')) status = 400
-          else if (error.message.includes('(409)')) status = 409
-          else if (error.message.includes('(429)')) status = 429
-          else if (error.message.includes('(500)') || error.message.includes('(5')) status = 500
+        // Check if the response indicates success or error
+        if (response.code >= 200 && response.code < 300) {
+          // Success
+          emailInput.value = ''
+          clearError()
+          if (onSuccess) {
+            onSuccess(email)
+          }
+          
+          submitButton.textContent = successText
+          submitButton.classList.add('_ffSubscriptionButtonSuccess')
+          await setTimeout(() => {
+            submitButton.textContent = buttonText
+            submitButton.classList.remove('_ffSubscriptionButtonSuccess')
+            emailInput.disabled = false
+            submitButton.disabled = false
+          }, 15000)
+        } else {
+          // Error response
+          let errorMessage = 'Subscription failed. Please try again.'
           
           // Priority 1: Check for custom messages first based on status code
-          if (status === 400 && messages[400]) {
+          if (response.code === 400 && messages[400]) {
             errorMessage = messages[400]
-          } else if (status === 409 && messages[409]) {
+          } else if (response.code === 409 && messages[409]) {
             errorMessage = messages[409]
-          } else if (status === 429 && messages[429]) {
+          } else if (response.code === 429 && messages[429]) {
             errorMessage = messages[429]
-          } else if (status && status >= 500 && messages[500]) {
+          } else if (response.code >= 500 && messages[500]) {
             errorMessage = messages[500]
           } else if (messages.default) {
             errorMessage = messages.default
           } else {
-            // Priority 2: Use default fallbacks based on status code
-            if (status === 400) {
-              errorMessage = 'Invalid email address'
-            } else if (status === 409) {
-              errorMessage = 'This email is already subscribed'
-            } else if (status === 429) {
-              errorMessage = 'Too many requests. Please try again later.'
-            } else if (status && status >= 500) {
-              errorMessage = 'Server error. Please try again later.'
-            } else {
-              errorMessage = error.message || 'Subscription failed. Please try again.'
-            }
+            // Priority 2: Use the server error message directly
+            errorMessage = response.message
+          }
+          
+          showError(errorMessage)
+          
+          if (onError) {
+            const error = new Error(response.message)
+            onError(error, email)
+          }
+
+          emailInput.disabled = false
+          submitButton.disabled = false
+          if (submitButton.textContent === loadingText) {
+            submitButton.textContent = buttonText
           }
         }
+
+      } catch (error) {
+        console.error('Subscription error:', error)
         
+        // Handle network or other unexpected errors
+        let errorMessage = messages.default || 'Network error. Please try again.'
         showError(errorMessage)
         
         if (onError) {
@@ -547,11 +547,6 @@ export class Freshfield {
       body: JSON.stringify({ email: email.trim() }),
     })
 
-    if (!response.ok) {
-      const errorMsg = `Failed to add subscription (${response.status}): ${response.statusText}`
-      throw new Error(errorMsg)
-    }
-
     return await response.json()
   }
 
@@ -573,11 +568,6 @@ export class Freshfield {
         'X-Api-Key': this.token,
       },
     })
-
-    if (!response.ok) {
-      const errorMsg = `Failed to get subscription status (${response.status}): ${response.statusText}`
-      throw new Error(errorMsg)
-    }
 
     return await response.json()
   }
@@ -604,11 +594,6 @@ export class Freshfield {
         subscribed
       }),
     })
-
-    if (!response.ok) {
-      const errorMsg = `Failed to update subscription status (${response.status}): ${response.statusText}`
-      throw new Error(errorMsg)
-    }
 
     return await response.json()
   }

@@ -274,8 +274,6 @@ Example when an error occurs:
 }
 ```
 
-()
-
 ---
 
 #### Get Subscription Status
