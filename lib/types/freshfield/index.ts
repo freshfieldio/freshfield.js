@@ -35,18 +35,25 @@ export interface SubscriptionWidgetOptions {
 
 export interface SubscriptionStatusResponse {
   code: number
-  email: string
-  subscribed: boolean
+  message: string
+  data: {
+    email: string
+    subscribed: boolean
+  }
 }
 
 export interface SubscriptionUpdateResponse {
   code: number
   message: string
-  email: string
+  data: {
+    email: string
+  }
 }
 
 export interface SubscriptionAddResponse {
   code: number
   message: string
-  email: string
+  data: {
+    email: string
+  }
 }
