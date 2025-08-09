@@ -155,84 +155,13 @@ await freshfield.html({
 
 ### Subscription API
 
-The subscription API provides multiple methods for managing email subscriptions:
+The subscription API provides core methods for managing email subscriptions:
 
 |                                                  | Description                  | Method                                   |
 | ------------------------------------------------ | ---------------------------- | ---------------------------------------- |
-| **[Subscription Widget](#subscription-widget)**  | Display subscription form    | `freshfield.subscription.widget()`       |
 | **[Add Subscription](#add-subscription)**        | Subscribe an email address   | `freshfield.subscription.add()`          |
 | **[Get Status](#get-subscription-status)**       | Check if email is subscribed | `freshfield.subscription.getStatus()`    |
 | **[Update Status](#update-subscription-status)** | Change subscription status   | `freshfield.subscription.updateStatus()` |
-
----
-
-#### Subscription Widget
-
-> **Important:** This method requires a container element with ID `_ffSubscriptionContainer` in your DOM.
-
-```javascript
-// Display email subscription form
-freshfield.subscription.widget({
-  placeholder: "Enter your email...",
-  buttonTexts: {
-    default: "Subscribe", // Default button text
-    loading: "Subscribing...", // Button text during submission
-    success: "Subscribed!", // Button text on success
-  },
-  validationMessages: {
-    required: "Email is required",
-    invalid: "Please enter a valid email address",
-  },
-  messages: {
-    400: "Please enter a valid email address",
-    409: "You've already subscribed!",
-    429: "Too many attempts. Please wait a moment.",
-    500: "Server error. Please try again later.",
-    default: "Something went wrong",
-    cancelled: "Custom validation failed",
-  },
-  beforeSend: async (email) => {
-    // Custom validation before sending
-    return true; // Return false to cancel (false also triggers messages.cancelled)
-  },
-  onSuccess: (email) => {
-    console.log("Subscribed:", email);
-  },
-  onError: (error, email) => {
-    console.log("Failed:", error.message);
-  },
-});
-```
-
-<details>
-<summary><strong>📄 Show HTML Structure Example</strong></summary>
-
-```html
-<div id="_ffSubscriptionContainer">
-  <form class="_ffSubscription">
-    <div class="_ffSubscriptionInputWrapper">
-      <input
-        type="text"
-        class="_ffSubscriptionInput"
-        placeholder="Enter your email..."
-      />
-      <button type="submit" class="_ffSubscriptionButton">Subscribe</button>
-    </div>
-    <div class="_ffSubscriptionError" style="display: none;">
-      <!-- Error messages appear here -->
-    </div>
-  </form>
-</div>
-```
-
-</details>
-
-```html
-<!-- Required container for subscription widget -->
-<div id="_ffSubscriptionContainer">
-  <!-- Subscription form will be automatically rendered here -->
-</div>
-```
 
 ---
 

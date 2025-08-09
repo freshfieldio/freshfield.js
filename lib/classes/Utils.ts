@@ -226,87 +226,7 @@ const carrotModalStyles = `
     }
 `
 
-const subscriptionWidgetStyles = `
-    ._ffSubscription {
-        ${colors}
-        font-family: inherit;
-        width: 100%;
-        max-width: 28rem;
-    }
 
-    ._ffSubscriptionInputWrapper {
-        display: flex;
-        gap: 0.5rem;
-        align-items: stretch;
-    }
-
-    ._ffSubscriptionInput {
-        flex: 1;
-        padding: 0.5rem 0.75rem;
-        border: 2px solid var(--color-light-soft);
-        border-radius: 0.5rem;
-        font-size: 0.875rem;
-        background: white;
-        color: var(--color-dark);
-        transition: border-color 0.2s ease;
-    }
-    
-    ._ffSubscriptionInput:focus {
-        outline: none;
-        border-color: var(--color-middle);
-    }
-
-    ._ffSubscriptionInput:disabled {
-        background: var(--color-light);
-        cursor: not-allowed;
-    }
-
-    ._ffSubscriptionInput::placeholder {
-        color: color-mix(in srgb, var(--color-middle) 50%, transparent);
-    }
-
-    ._ffSubscriptionButton {
-        padding: 0.5rem 1rem;
-        background: var(--color-dark);
-        color: var(--color-light);
-        border-radius: 0.5rem;
-        font-size: 0.875rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-        white-space: nowrap;
-    }
-
-    ._ffSubscriptionButton:hover:not(:disabled) {
-        background: var(--color-dark-semi);
-    }
-
-    ._ffSubscriptionButton:disabled {
-        background: color-mix(in srgb, var(--color-dark) 50%, transparent);
-        cursor: not-allowed;
-    }
-
-    ._ffSubscriptionButtonSuccess {
-        background: var(--color-green);
-        color: var(--color-light);
-    }
-
-    ._ffSubscriptionButtonSuccess:disabled {
-        background: var(--color-green);
-        cursor: not-allowed;
-    }
-
-    ._ffSubscriptionInputError {
-        border-color: var(--color-red);
-    }
-
-    ._ffSubscriptionError {
-        color: var(--color-red);
-        font-size: 0.75rem;
-        margin-top: 0.2rem;
-        font-weight: 500;
-    }
-`
 
 import { API_ENDPOINTS, SELECTORS } from '../constants'
 
@@ -364,7 +284,7 @@ export class Utils {
     const style = document.createElement('style')
     style.id = SELECTORS.STYLES
     
-    let stylesToLoad = modalBaseStyles + subscriptionWidgetStyles
+    let stylesToLoad = modalBaseStyles
     
     if (theme === 'carrot') {
       stylesToLoad += carrotModalStyles
