@@ -1,4 +1,4 @@
-import { FreshfieldOptions, FreshfieldHtmlOptions, Update, ModalOptions, SubscriptionStatusResponse, SubscriptionUpdateResponse, SubscriptionAddResponse } from '../types'
+import { FreshfieldOptions, FreshfieldHtmlOptions, Update, ModalOptions, SubscriptionStatusResponse, SubscriptionUpdateResponse, SubscriptionAddResponse, FreshfieldInitOptions } from '../types'
 import { Utils } from './Utils'
 import { Renderer } from './Renderer'
 import { API_ENDPOINTS, DEFAULT_OPTIONS, SELECTORS } from '../constants'
@@ -6,6 +6,7 @@ import { API_ENDPOINTS, DEFAULT_OPTIONS, SELECTORS } from '../constants'
 
 export class Freshfield {
   private token: string = ''
+  private authToken: string = ''
   
   /**
    * Email subscription management methods
@@ -16,6 +17,7 @@ export class Freshfield {
      * @param email Email address to subscribe
      * @returns Promise resolving to subscription result
      * @throws {Error} If SDK not initialized or API request fails
+     * @note This method also requires authToken to be set in init() options
      */
     add: this.addSubscription.bind(this),
     
@@ -33,6 +35,7 @@ export class Freshfield {
      * @param subscribed New subscription status (true = subscribed, false = unsubscribed)
      * @returns Promise resolving to update result
      * @throws {Error} If SDK not initialized or API request fails
+     * @note This method also requires authToken to be set in init() options
      */
     updateStatus: this.updateSubscriptionStatus.bind(this),
   }
@@ -40,13 +43,16 @@ export class Freshfield {
   /**
    * Initialize the Freshfield SDK with your API token.
    * @param token Your Freshfield API token
+   * @param options Configuration options for initialization
+   * @param options.authToken Authentication token required for subscription API methods
    * @throws {Error} If token is empty or invalid
    */
-  init(token: string): void {
+  init(token: string, options: FreshfieldInitOptions = {}): void {
     if (!token || token.trim().length === 0) {
       throw new Error('API token is required')
     }
     this.token = token.trim()
+    this.authToken = options.authToken?.trim() || ''
   }
 
   /**
@@ -319,6 +325,10 @@ export class Freshfield {
       throw new Error('SDK not initialized. Call init() first.')
     }
 
+    if (!this.authToken) {
+      throw new Error('Auth token is required for subscription operations. Please provide authToken in init() options.')
+    }
+
     if (!email || !email.trim()) {
       throw new Error('Email address is required')
     }
@@ -330,6 +340,7 @@ export class Freshfield {
       headers: {
         'Content-Type': 'application/json',
         'X-Api-Key': this.token,
+        'X-Auth-Token': this.authToken,
       },
       body: JSON.stringify({ email: email.trim() }),
     })
@@ -364,6 +375,10 @@ export class Freshfield {
       throw new Error('SDK not initialized. Call init() first.')
     }
 
+    if (!this.authToken) {
+      throw new Error('Auth token is required for subscription operations. Please provide authToken in init() options.')
+    }
+
     if (!email || !email.trim()) {
       throw new Error('Email address is required')
     }
@@ -375,6 +390,7 @@ export class Freshfield {
       headers: {
         'Content-Type': 'application/json',
         'X-Api-Key': this.token,
+        'X-Auth-Token': this.authToken,
       },
       body: JSON.stringify({
         email: email.trim(),

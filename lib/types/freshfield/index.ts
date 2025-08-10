@@ -9,6 +9,10 @@ export interface FreshfieldHtmlOptions {
   offset?: number
 }
 
+export interface FreshfieldInitOptions {
+  authToken?: string
+}
+
 
 
 export interface SubscriptionStatusResponse {

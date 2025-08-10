@@ -23,12 +23,21 @@ yarn add freshfield.js
 
 ## Initialization
 
+> **Important: Never use your authToken on the client, always use it on the server.** > <br/>
+
+> **For displaying updates initialize only with API Key**
+
 ```javascript
 import Freshfield from "freshfield.js";
 
 // Initialize Freshfield with your API key
 const freshfield = new Freshfield();
 freshfield.init("your-api-key");
+
+// For subscription API methods, you need to provide an authToken
+freshfield.init("your-api-key", {
+  authToken: "your-secret-auth-token",
+});
 ```
 
 ## API Reference
@@ -157,11 +166,13 @@ await freshfield.html({
 
 The subscription API provides core methods for managing email subscriptions:
 
-|                                                  | Description                  | Method                                   |
-| ------------------------------------------------ | ---------------------------- | ---------------------------------------- |
-| **[Add Subscription](#add-subscription)**        | Subscribe an email address   | `freshfield.subscription.add()`          |
-| **[Get Status](#get-subscription-status)**       | Check if email is subscribed | `freshfield.subscription.getStatus()`    |
-| **[Update Status](#update-subscription-status)** | Change subscription status   | `freshfield.subscription.updateStatus()` |
+> **Important:** The `add()` and `updateStatus()` methods require an `authToken` to be provided during initialization. The `getStatus()` method only requires the API key.
+
+|                                                  | Description                  | Method                                   | Auth Required   |
+| ------------------------------------------------ | ---------------------------- | ---------------------------------------- | --------------- |
+| **[Add Subscription](#add-subscription)**        | Subscribe an email address   | `freshfield.subscription.add()`          | ✅ authToken    |
+| **[Get Status](#get-subscription-status)**       | Check if email is subscribed | `freshfield.subscription.getStatus()`    | ❌ API key only |
+| **[Update Status](#update-subscription-status)** | Change subscription status   | `freshfield.subscription.updateStatus()` | ✅ authToken    |
 
 ---
 
@@ -441,7 +452,9 @@ import Freshfield from "freshfield.js";
 function UpdatesWidget() {
   useEffect(() => {
     const freshfield = new Freshfield();
-    freshfield.init("your-api-key");
+    freshfield.init("your-api-key", {
+      authToken: "your-auth-token", // Required for subscription methods
+    });
 
     // Load HTML updates
     freshfield.html({ limit: 5 });
@@ -464,7 +477,9 @@ import Freshfield from "freshfield.js";
 
 onMounted(async () => {
   const freshfield = new Freshfield();
-  freshfield.init("your-api-key");
+  freshfield.init("your-api-key", {
+    authToken: "your-auth-token", // Required for subscription methods
+  });
 
   await freshfield.html({ limit: 5 });
 });
@@ -480,7 +495,9 @@ onMounted(async () => {
 
     onMount(async () => {
         const freshfield = new Freshfield();
-        freshfield.init('your-api-key');
+        freshfield.init('your-api-key', {
+            authToken: 'your-auth-token' // Required for subscription methods
+        });
 
         await freshfield.html({ limit: 5 });
     });
