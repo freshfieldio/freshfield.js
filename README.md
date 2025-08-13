@@ -401,6 +401,8 @@ freshfield.showLastUpdateModal({
 
 - `._ffModal` - Modal overlay (with backdrop)
 - `._ffModalContent` - Modal content container
+- `._ffModalContentMain` - Main content wrapper (carrot theme only)
+- `._ffModalFooter` - Sticky footer container (carrot theme only)
 - `._ffModalClose` - Close/submit button
 
 **Update Content:**

@@ -230,92 +230,181 @@ export class Freshfield {
     dateElement.textContent = new Date(update.created).toLocaleDateString()
 
     if (theme === 'carrot') {
+      // Main content wrapper for carrot theme
+      const mainContent = document.createElement('div')
+      mainContent.className = '_ffModalContentMain'
+
       const header = document.createElement('div')
       header.className = '_ffUpdateHeader'
       
       if (versionElement) header.appendChild(versionElement)
       header.appendChild(dateElement)
-      content.appendChild(header)
+      mainContent.appendChild(header)
+
+      // Title
+      const title = document.createElement('h3')
+      title.className = '_ffUpdateTitle'
+      title.textContent = update.title
+
+      // Description
+      const description = document.createElement('div')
+      description.className = '_ffUpdateDescription'
+      description.innerHTML = update.description
+
+      // Features
+      const features = document.createElement('div')
+      features.className = '_ffFeaturesList'
+
+      update.features.forEach((feature) => {
+        const featureEl = document.createElement('div')
+        featureEl.className = '_ffFeature'
+
+        const featureHeader = document.createElement('div')
+        featureHeader.className = '_ffFeatureHeader'
+
+        // Feature icon
+        if (feature.icon && feature.icon.trim()) {
+          const icon = document.createElement('span')
+          icon.className = '_ffFeatureIcon'
+          icon.innerHTML = feature.icon
+          featureHeader.appendChild(icon)
+        } else {
+          const icon = document.createElement('span')
+          icon.className = '_ffFeatureIcon _ffFeatureIconFallback'
+          icon.textContent = '•'
+          featureHeader.appendChild(icon)
+        }
+
+        // Feature title
+        const featureTitle = document.createElement('h3')
+        featureTitle.className = '_ffFeatureTitle'
+        featureTitle.textContent = feature.name
+
+        // Feature type label
+        const featureLabel = document.createElement('span')
+        featureLabel.className = `_ffFeatureLabel _ffFeatureLabel-${feature.type}`
+        featureLabel.textContent = feature.type
+
+        featureHeader.appendChild(featureTitle)
+        featureHeader.appendChild(featureLabel)
+
+        // Feature description
+        const featureText = document.createElement('p')
+        featureText.className = '_ffFeatureDescription'
+        featureText.textContent = feature.description
+
+        featureEl.appendChild(featureHeader)
+        featureEl.appendChild(featureText)
+        features.appendChild(featureEl)
+      })
+
+      // Append main content elements
+      mainContent.appendChild(title)
+      mainContent.appendChild(description)
+      mainContent.appendChild(features)
+
+      // Create footer with close button
+      const footer = document.createElement('div')
+      footer.className = '_ffModalFooter'
+
+      const closeButton = document.createElement('button')
+      closeButton.className = '_ffModalClose'
+      closeButton.textContent = submitButtonText
+      closeButton.addEventListener('click', () => {
+        modal.classList.add('_ffClosing')
+        setTimeout(() => {
+          modal.remove()
+          this.enableBodyScroll()
+          if (onConfirm) onConfirm(update.id)
+        }, 200)
+      })
+
+      footer.appendChild(closeButton)
+
+      // Append main content and footer to modal content
+      content.appendChild(mainContent)
+      content.appendChild(footer)
     } else {
+      // Original structure for non-carrot theme
       if (versionElement) content.appendChild(versionElement)
       content.appendChild(dateElement)
+
+      // Title
+      const title = document.createElement('h3')
+      title.className = '_ffUpdateTitle'
+      title.textContent = update.title
+
+      // Description
+      const description = document.createElement('div')
+      description.className = '_ffUpdateDescription'
+      description.innerHTML = update.description
+
+      // Features
+      const features = document.createElement('div')
+      features.className = '_ffFeaturesList'
+
+      update.features.forEach((feature) => {
+        const featureEl = document.createElement('div')
+        featureEl.className = '_ffFeature'
+
+        const featureHeader = document.createElement('div')
+        featureHeader.className = '_ffFeatureHeader'
+
+        // Feature icon
+        if (feature.icon && feature.icon.trim()) {
+          const icon = document.createElement('span')
+          icon.className = '_ffFeatureIcon'
+          icon.innerHTML = feature.icon
+          featureHeader.appendChild(icon)
+        } else {
+          const icon = document.createElement('span')
+          icon.className = '_ffFeatureIcon _ffFeatureIconFallback'
+          icon.textContent = '•'
+          featureHeader.appendChild(icon)
+        }
+
+        // Feature title
+        const featureTitle = document.createElement('h3')
+        featureTitle.className = '_ffFeatureTitle'
+        featureTitle.textContent = feature.name
+
+        // Feature type label
+        const featureLabel = document.createElement('span')
+        featureLabel.className = `_ffFeatureLabel _ffFeatureLabel-${feature.type}`
+        featureLabel.textContent = feature.type
+
+        featureHeader.appendChild(featureTitle)
+        featureHeader.appendChild(featureLabel)
+
+        // Feature description
+        const featureText = document.createElement('p')
+        featureText.className = '_ffFeatureDescription'
+        featureText.textContent = feature.description
+
+        featureEl.appendChild(featureHeader)
+        featureEl.appendChild(featureText)
+        features.appendChild(featureEl)
+      })
+
+      // Close button
+      const closeButton = document.createElement('button')
+      closeButton.className = '_ffModalClose'
+      closeButton.textContent = submitButtonText
+      closeButton.addEventListener('click', () => {
+        modal.classList.add('_ffClosing')
+        setTimeout(() => {
+          modal.remove()
+          this.enableBodyScroll()
+          if (onConfirm) onConfirm(update.id)
+        }, 200)
+      })
+
+      // Append content elements
+      content.appendChild(title)
+      content.appendChild(description)
+      content.appendChild(features)
+      content.appendChild(closeButton)
     }
-
-    // Title
-    const title = document.createElement('h3')
-    title.className = '_ffUpdateTitle'
-    title.textContent = update.title
-
-    // Description
-    const description = document.createElement('div')
-    description.className = '_ffUpdateDescription'
-    description.innerHTML = update.description
-
-    // Features
-    const features = document.createElement('div')
-    features.className = '_ffFeaturesList'
-
-    update.features.forEach((feature) => {
-      const featureEl = document.createElement('div')
-      featureEl.className = '_ffFeature'
-
-      const featureHeader = document.createElement('div')
-      featureHeader.className = '_ffFeatureHeader'
-
-      // Feature icon
-      if (feature.icon && feature.icon.trim()) {
-        const icon = document.createElement('span')
-        icon.className = '_ffFeatureIcon'
-        icon.innerHTML = feature.icon
-        featureHeader.appendChild(icon)
-      } else {
-        const icon = document.createElement('span')
-        icon.className = '_ffFeatureIcon _ffFeatureIconFallback'
-        icon.textContent = '•'
-        featureHeader.appendChild(icon)
-      }
-
-      // Feature title
-      const featureTitle = document.createElement('h3')
-      featureTitle.className = '_ffFeatureTitle'
-      featureTitle.textContent = feature.name
-
-      // Feature type label
-      const featureLabel = document.createElement('span')
-      featureLabel.className = `_ffFeatureLabel _ffFeatureLabel-${feature.type}`
-      featureLabel.textContent = feature.type
-
-      featureHeader.appendChild(featureTitle)
-      featureHeader.appendChild(featureLabel)
-
-      // Feature description
-      const featureText = document.createElement('p')
-      featureText.className = '_ffFeatureDescription'
-      featureText.textContent = feature.description
-
-      featureEl.appendChild(featureHeader)
-      featureEl.appendChild(featureText)
-      features.appendChild(featureEl)
-    })
-
-    // Close button
-    const closeButton = document.createElement('button')
-    closeButton.className = '_ffModalClose'
-    closeButton.textContent = submitButtonText
-    closeButton.addEventListener('click', () => {
-      modal.classList.add('_ffClosing')
-      setTimeout(() => {
-        modal.remove()
-        this.enableBodyScroll()
-        if (onConfirm) onConfirm(update.id)
-      }, 200)
-    })
-
-    // Append content elements
-    content.appendChild(title)
-    content.appendChild(description)
-    content.appendChild(features)
-    content.appendChild(closeButton)
   }
 
 

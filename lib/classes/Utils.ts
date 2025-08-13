@@ -55,7 +55,8 @@ const modalBaseStyles = `
         width: 100%;
         max-width: 35rem;
         margin: 0.625rem;
-        max-height: 90vh;
+        height: 90dvh;
+        max-height: 40rem;
         overflow-y: auto;
         position: relative;
         animation: _ffFlyIn 0.3s ease-out;
@@ -72,14 +73,27 @@ const carrotModalStyles = `
         ${colors}
         display: flex;
         flex-direction: column;
-        gap: 0.25rem;
         border-radius: 1.5rem;
         border: 2px solid var(--color-light-soft);
         background: var(--color-light);
+        padding: 0rem;
+    }
+
+    ._ffModalContentMain {
+        flex: 1;
         padding: 1.25rem;
-        width: 100%;
-        max-width: 35rem;
-        margin: 0.625rem;
+        overflow-y: auto;
+        padding-bottom: 1rem;
+    }
+
+    ._ffModalFooter {
+        margin-top: auto;
+        box-shadow: 0 -10px 20px rgba(255, 255, 255, 0.9);
+        padding: 1rem 1.25rem 1rem 1.25rem;
+        border-top: 2px solid var(--color-light-soft);
+        background: var(--color-light);
+        position: sticky;
+        bottom: 0;
     }
 
     ._ffUpdateHeader {
@@ -210,7 +224,6 @@ const carrotModalStyles = `
     }
 
     ._ffModalClose {
-        margin-top: 1.5rem;
         border-radius: 0.75rem;
         background: var(--color-dark);
         transition: background 0.2s ease;
